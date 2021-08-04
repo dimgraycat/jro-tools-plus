@@ -60,7 +60,7 @@
     "require-dir": "0.x.x",
     "shelljs": "^0.8.3",
     "standard": "^10.0.2",
-    "tar": ">=2.2.2",
+    "tar": ">=4.4.15",
     "ts-loader": "^2.x.x",
     "tslint": "^5.x.x",
     "tunnel-agent": ">=0.6.0",
