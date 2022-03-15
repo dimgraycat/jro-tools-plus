@@ -58,7 +58,7 @@
     "gulp-zip": "^4.x.x",
     "js-yaml": ">=3.13.1",
     "require-dir": "0.x.x",
-    "shelljs": "^0.8.3",
+    "shelljs": "^0.8.5",
     "standard": "^10.0.2",
     "tar": ">=2.2.2",
     "ts-loader": "^2.x.x",
