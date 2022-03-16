@@ -1,5 +1,5 @@
 /// <reference path="../../typings/globals/jquery/index.d.ts" />
-import * as _ from 'underscore'
+import _, { map } from 'underscore'
 
 class TorihikiPlus {
   private worlds: any = [
@@ -67,7 +67,7 @@ class TorihikiPlus {
     if (document.getElementsByClassName('.tradedetail.clearfix') != null) {
       $.each($('.tradedetail.clearfix'), function() {
         let table = this
-        if (!$(table).find('#plus').size()) {
+        if (!$(table).find('#plus').length) {
           $(table).find('.link').each(function() {
             let linkElement = this
             // href: log_detail.php?log=xxxxx

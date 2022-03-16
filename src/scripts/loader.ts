@@ -1,3 +1,5 @@
+import { browser } from 'webextension-polyfill-ts'
+
 let config = [
   {
     "domain": "ragnarokonline.gungho.jp",
@@ -16,7 +18,7 @@ let config = [
 let script = (list: string[]): void => {
   list.forEach((file) => {
     let elem = document.createElement('script')
-    elem.setAttribute('src', chrome.extension.getURL(file))
+    elem.setAttribute('src', browser.runtime.getURL(file))
     document.body.appendChild(elem)
   })
 }
@@ -24,7 +26,7 @@ let script = (list: string[]): void => {
 let css = (list: string[]): void => {
   list.forEach((file) => {
     let link = document.createElement("link")
-    link.href = chrome.extension.getURL(file)
+    link.href = browser.runtime.getURL(file)
     link.type = "text/css"
     link.rel = "stylesheet"
     document.getElementsByTagName("head")[0].appendChild(link)

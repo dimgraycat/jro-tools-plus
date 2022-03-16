@@ -1,0 +1,37 @@
+{
+    "name": "jRo Tools Plus",
+    "description": "jROの公式ページを便利にツール",
+    "version": "1.0.27",
+    "manifest_version": 3,
+    "icons": {
+        "16": "images/icon-16.png",
+        "48": "images/icon-48.png",
+        "128": "images/icon-128.png"
+    },
+    "homepage_url": "https://chrome.google.com/webstore/detail/ro-torihiki-plus/hgokafkkkicmfmmjnclhmklidgndfkoc?hl=ja&gl=JP",
+    "content_scripts": [{
+        "run_at": "document_end",
+        "matches": [
+            "*://*.gungho.jp/torihiki/*",
+            "*://*.gungho.jp/gameguide/system/worldstorage/sta.html",
+            "*://*.gungho.jp/gameguide/system/worldstorage/ygg.html"
+        ],
+        "js": ["scripts/loader.js"]
+    }],
+    "action": {
+        "default_icon": {
+            "19": "images/icon-19.png"
+        }
+    },
+    "permissions": [],
+    "web_accessible_resources": [{
+        "resources": [
+            "scripts/torihiki_plus.js",
+            "scripts/worldstorage_plus.js",
+            "styles/jro_torihiki_plus.css"
+        ],
+        "matches": [
+            "https://*/*"
+        ]
+    }]
+}
