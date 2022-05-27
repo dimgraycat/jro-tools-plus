@@ -1,7 +1,7 @@
 {
     "name": "jRo Tools Plus",
     "description": "jROの公式ページを便利にツール",
-    "version": "1.0.28",
+    "version": "1.1.0",
     "manifest_version": 3,
     "icons": {
         "16": "images/icon-16.png",

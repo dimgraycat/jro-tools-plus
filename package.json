@@ -36,7 +36,7 @@
     "clean": "rm -rf dist/*"
   },
   "name": "jro-tools-plus",
-  "version": "1.0.28",
+  "version": "1.1.0",
   "repository": "git@github.com:dimgraycat/jro-tools-plus.git",
   "author": "dimgraycat <dimgray.cat@gmail.com>",
   "license": "MIT"
