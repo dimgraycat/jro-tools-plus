@@ -5,13 +5,13 @@ let config = [
     "domain": "ragnarokonline.gungho.jp",
     "regex": /^\/gameguide\/system\/worldstorage\/(sta.html|ygg.html)/g,
     "js": ['scripts/worldstorage_plus.js'],
-    "css": ['styles/jro_torihiki_plus.css']
+    "css": ['css/jro_tools_plus.min.css']
   },
   {
     "domain": "rotool.gungho.jp",
     "regex": /^\/torihiki\/.*/g,
     "js": ['scripts/torihiki_plus.js'],
-    "css": ['styles/jro_torihiki_plus.css']
+    "css": ['css/jro_tools_plus.min.css']
   }
 ]
 

@@ -1,0 +1,61 @@
+/* スクロールTOPボタン */
+#plus-top-button {
+    $self: &;
+    position: fixed;
+    bottom: 10px;
+    left: 620px;
+    font-size: 110%;
+
+    a {
+        background: #666;
+        text-decoration: none;
+        color: #fff;
+        width: 100px;
+        padding: 20px 0;
+        text-align: center;
+        font-weight: bold;
+        display: block;
+        border-radius: 5px;
+
+        &:hover {
+            text-decoration: none;
+            background: #999;
+        }
+    }
+}
+
+/* ワールドストレージ */
+#plus-ws-form {
+    background: #e6edfa;
+    padding: 5px;
+    -webkit-border-radius: 3px;
+    margin: 5px;
+
+    p {
+        .search {
+            border:0;
+            padding: 3px;
+            background-color: #fff;
+            margin-bottom: 3px;
+            color:#000;
+            border:solid 1px #ccc;
+            width:300px;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            border-radius: 3px;
+            -moz-box-shadow: inset 1px 4px 9px -6px rgba(0,0,0,0.5);
+            -webkit-box-shadow: inset 1px 4px 9px -6px rgba(0, 0, 0, 0.5);
+            box-shadow: inset 1px 4px 9px -6px rgba(0,0,0,0.5);
+        }
+        span {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    }
+    .plus-ws-checkbox {
+        margin-right: 2px;
+    }
+    .plus-ws-radio-label {
+        margin-right: 8px;
+    }
+}

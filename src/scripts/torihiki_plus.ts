@@ -108,9 +108,9 @@ class TorihikiPlus {
       })
       let tags = $('<ul>', {id: 'plus'})
       if ('refining' in params) {
-        tags.append($('<li>', {class: 'plus-li'}).append(
+        tags.append($('<li>', {class: 'plus-item'}).append(
           $('<span>', {
-            class: 'plus-badge',
+            class: 'plus-item__text',
             text: '・精錬値 + ' + params.refining
           })
         ))
@@ -118,9 +118,9 @@ class TorihikiPlus {
       if ('options' in params) {
         $.each(params.options, function(j, option) {
           option = option.replace('	</overclock>', '')
-          tags.append($('<li>', {class: 'plus-li'}).append(
+          tags.append($('<li>', {class: 'plus-item'}).append(
             $('<span>', {
-              class: 'plus-badge',
+              class: 'plus-item__text',
               text: _.unescape(option)
             })
           ))

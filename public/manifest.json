@@ -28,7 +28,7 @@
         "resources": [
             "scripts/torihiki_plus.js",
             "scripts/worldstorage_plus.js",
-            "styles/jro_torihiki_plus.css"
+            "css/jro_tools_plus.min.css"
         ],
         "matches": [
             "https://*/*"

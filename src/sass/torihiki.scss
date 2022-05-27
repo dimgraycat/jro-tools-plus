@@ -1,0 +1,97 @@
+.plus {
+    $self: &;
+    &-item {
+        margin-top: .15em;
+
+        &__text {
+            display: inline-block;
+            font-size: 85%;
+        }
+    }
+}
+
+/* ワールドセレクト */
+#plus-worldSelect {
+    $self: &;
+    background: #e6edfa;
+    font-size: small;
+    padding: 8px;
+    -webkit-border-radius: 3px;
+    margin: 3px 0 5px 0;
+
+    &:after {
+        clear: both;
+        content: '';
+        display: block;
+    }
+    .plus-worldSelect-description {
+        float: left;
+        color: #fff;
+        background: #01aaed;
+        -webkit-border-radius: 3px;
+        padding: 8px;
+        margin: 3px 0 8px 0;
+    }
+    .plus-worlds {
+        float: left;
+        font-size: small;
+        line-height: 150%;
+        margin: 0 0 0 15px;
+
+        a {
+            float: left;
+            text-decoration: none;
+            color: #7d7d7d;
+            margin: 0 10px 0 0;
+        }
+    }
+}
+/* もっと見るボタン */
+#searchresult {
+    .more {
+        background-image: -moz-linear-gradient(top, #fff, #e3e3e3);
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#e3e3e3));
+        min-width: 130px;
+        margin: 0 95px;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        border: 1px solid #cbcbcb;
+        border-radius: 3px;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        font-size: 80%;
+        a {
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            color: #7d7d7d;
+            padding: 15px;
+        }
+    }
+    /* SNSシェアを小さく */
+    .result_sns {
+        text-align: right;
+        background: #fff;
+    }
+    .result_sns a img {
+        width: 18px;
+        height: 18px;
+    }
+    .result_sns .twitter {
+        margin-right: 3px;
+    }
+    /* average, max, min */
+    .result_maxmin:after {
+        clear: both;
+        content: '';
+        display: block;
+    }
+    .result_maxmin .numdata {
+        float: left;
+        min-width: 33%;
+    }
+    .result_maxmin .num {
+        text-align: right;
+    }
+}
