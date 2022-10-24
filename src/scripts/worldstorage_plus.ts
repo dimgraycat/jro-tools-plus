@@ -2,7 +2,7 @@
 
 declare var require: any;
 import $ = require('jquery');
-import wsForm from './worldstorage_plus_form';
+import wsForm from './worldstorage/form';
 var List = require('list.js');
 
 class SearchItems {
