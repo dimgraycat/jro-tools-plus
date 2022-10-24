@@ -27,7 +27,6 @@
     "build": "yarn clean && yarn build-prod",
     "build-prod": "cross-env NODE_ENV=production yarn webpack && npm-run-all build:*",
     "build-dev": "cross-env NODE_ENV=development yarn webpack && npm-run-all build:*",
-    "build:bootstrap": "mkdir -p dist/bootstrap && cp -rf node_modules/bootstrap/dist/* dist/bootstrap",
     "build:sass": "npm-run-all build:sass:*",
     "build:sass:tools-plus": "sass ./src/sass/jro_tools_plus.scss ./dist/css/jro_tools_plus.min.css --style compressed --no-source-map --update",
     "watch": "npm-run-all -p watch:*",
