@@ -5,7 +5,6 @@ class TorihikiPlus {
   private worlds: any = [
     [
       {"Breidablik": 13},
-      {"Urdr": 14},
       {"Noatun": 15}
     ],
     [
@@ -20,7 +19,8 @@ class TorihikiPlus {
       {"Frigg": 10},
       {"Gimle": 7},
       {"Radgrid": 5},
-      {"Vali": 3}
+      {"Vali": 3},
+      {"Urdr": 14}
     ]
   ]
   public uri: URL

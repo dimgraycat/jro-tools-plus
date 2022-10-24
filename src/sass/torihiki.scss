@@ -88,8 +88,10 @@
         display: block;
     }
     .result_maxmin .numdata {
-        float: left;
-        min-width: 33%;
+        @media (width > 600px) {
+            float: left;
+            min-width: 33%;
+        }
     }
     .result_maxmin .num {
         text-align: right;
