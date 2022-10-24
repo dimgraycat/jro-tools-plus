@@ -6,6 +6,7 @@ const config = {
         loader: path.join(__dirname, 'src/scripts', 'loader.ts'),
         torihiki_plus: path.join(__dirname, 'src/scripts', 'torihiki_plus.ts'),
         worldstorage_plus: path.join(__dirname, 'src/scripts', 'worldstorage_plus.ts'),
+        background: path.join(__dirname, 'src/scripts', 'background.ts')
     },
     output: {
         path: path.join(__dirname, 'dist'),
