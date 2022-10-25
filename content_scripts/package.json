@@ -25,15 +25,14 @@
     "webpack-cli": "^4.9.2"
   },
   "scripts": {
-    "build": "yarn clean && yarn build-prod",
+    "build": "yarn build-prod",
     "build-prod": "cross-env NODE_ENV=production yarn webpack && npm-run-all build:*",
     "build-dev": "cross-env NODE_ENV=development yarn webpack && npm-run-all build:*",
     "build:sass": "npm-run-all build:sass:*",
-    "build:sass:tools-plus": "sass ./src/sass/jro_tools_plus.scss ./dist/css/jro_tools_plus.min.css --style compressed --no-source-map --update",
+    "build:sass:tools-plus": "sass ./sass/jro_tools_plus.scss ../dist/css/jro_tools_plus.min.css --style compressed --no-source-map --update",
     "watch": "npm-run-all -p watch:*",
-    "watch:sass": "cross-env NODE_ENV=development chokidar './src/sass/*' -c 'yarn build:sass' --polling",
-    "watch:js": "cross-env NODE_ENV=production webpack -w",
-    "clean": "rm -rf dist/*"
+    "watch:sass": "cross-env NODE_ENV=development chokidar './sass/*' -c 'yarn build:sass' --polling",
+    "watch:js": "cross-env NODE_ENV=production webpack -w"
   },
   "name": "jro-tools-plus",
   "version": "1.1.0",

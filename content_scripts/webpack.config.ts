@@ -3,15 +3,15 @@ import CopyPlugin from 'copy-webpack-plugin'
 import glob from 'glob'
 
 const entries = {};
-const srcFiles = `./src/scripts/*.ts`;
+const srcFiles = `./scripts/*.ts`;
 glob.sync(srcFiles).map(function (file) {
-  const key = file.replace("./src/scripts/", "").replace(/\.ts$/, "");
+  const key = file.replace("./scripts/", "").replace(/\.ts$/, "");
   entries[key] = file;
 });
 const config = {
     entry: entries,
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, '../dist'),
         filename: 'scripts/[name].js'
     },
     module: {
@@ -31,7 +31,7 @@ const config = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: 'public', to: '.' },
+                { from: '../public', to: '.' },
             ],
         }),
     ]
