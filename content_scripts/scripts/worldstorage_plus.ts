@@ -1,9 +1,8 @@
 "use strict";
 
-declare var require: any;
-import $ = require('jquery');
+import $ from 'jquery';
 import wsForm from './worldstorage/form';
-var List = require('list.js');
+import List from 'list.js';
 
 class SearchItems {
   private runPages: string[] = [

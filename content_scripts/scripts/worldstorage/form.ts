@@ -1,7 +1,6 @@
 "use strict"
 
-declare var require: any
-import $ = require('jquery')
+import $ from 'jquery';
 
 export default class WorldstoragePlusForm {
 
