@@ -126,7 +126,7 @@ class SearchItems {
     wsForm.addRadio(p2, 'plus-ws-coin', 'コイン');
     wsForm.addRadio(p2, 'plus-ws-other', 'その他');
 
-    let text:string = this.isYgg() ? 'Y鯖からしか入れれない' : 'エキスパートのみ';
+    let text:string = this.isYgg() ? 'Y鯖からしか入れられない' : 'エキスパートのみ';
     wsForm.addRadio(p2, 'plus-ws-expert-only', text);
 
     div.append(p2);

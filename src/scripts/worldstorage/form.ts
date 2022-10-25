@@ -18,7 +18,7 @@ export default class WorldstoragePlusForm {
   }
 
   static isCard(name:string) {
-    let card = /カード$/g
+    let card = /カード(.*逆位置\))?$/g
     let skillCard = /スキルカード$/g
     if (name.match(skillCard)) {
       return false
