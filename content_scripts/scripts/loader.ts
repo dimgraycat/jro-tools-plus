@@ -9,7 +9,7 @@ let config = [
   },
   {
     "domain": "rotool.gungho.jp",
-    "regex": /^\/(monster|item)\/.*/g,
+    "regex": /^\/(monster|map)\/.*/g,
     "js": [],
     "css": ['css/jro_tools_plus.min.css']
   }

@@ -1,0 +1,72 @@
+.monster {
+    .result-list:first-of-type ul li {
+        &.rate0:after,
+        &.rate1:after,
+        &.rate2:after,
+        &.rate3:after,
+        &.rate4:after,
+        &.rate5:after,
+        &.rate6:after,
+        &.rate7:after,
+        &.rate8:after,
+        &.rate9:after,
+        &.rate10:after {
+            border: 1px solid;
+            border-radius: 5px;
+            font-size: 11px;
+            margin-left: 10px;
+            padding: 2px 5px;
+            letter-spacing: 2px;
+        }
+        &.rate0:after,
+        &.rate1:after {
+            color: #dd0067;
+        }
+        &.rate2:after,
+        &.rate3:after {
+            color: #d8a20d;
+        }
+        &.rate4:after,
+        &.rate5:after,
+        &.rate6:after,
+        &.rate7:after,
+        &.rate8:after,
+        &.rate9:after {
+            color: #389AC8;
+        }
+        &.rate0:after {
+            content: "0.3%以下";
+        }
+        &.rate1:after {
+            content: "約0.5%";
+        }
+        &.rate2:after {
+            content: "約1%";
+        }
+        &.rate3:after {
+            content: "約5%";
+        }
+        &.rate4:after {
+            content: "約10%";
+        }
+        &.rate5:after {
+            content: "約15%";
+        }
+        &.rate6:after {
+            content: "約20%";
+        }
+        &.rate7:after {
+            content: "約25%";
+        }
+        &.rate8:after {
+            content: "約50%";
+        }
+        &.rate9:after {
+            content: "約75%";
+        }
+        &.rate10:after {
+            content: "100%";
+            color: #00a502;
+        }
+    }
+}
