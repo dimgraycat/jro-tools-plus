@@ -1,0 +1,121 @@
+.result-list:first-of-type ul li.rate10:after {
+	content: "100%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate9:after {
+	content: "約75%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate8:after {
+	content: "約50%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate7:after {
+	content: "約25%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate6:after {
+	content: "約20%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate5:after {
+	content: "約15%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate4:after {
+	content: "約10%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate3:after {
+	content: "約5%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate2:after {
+	content: "約1%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate1:after {
+	content: "約0.5%";
+	color: #000000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
+li.rate0:after {
+	content: "0.3%以下";
+	color: #FF0000;
+	border: 1px solid;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-left: 10px;
+	padding: 2px 3px;
+	letter-spacing: 2px;
+}
+
