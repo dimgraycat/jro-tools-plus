@@ -1,9 +1,8 @@
 "use strict";
 
-declare var require: any;
-import $ = require('jquery');
-import wsForm from './worldstorage_plus_form';
-var List = require('list.js');
+import $ from 'jquery';
+import wsForm from './worldstorage/form';
+import List from 'list.js';
 
 class SearchItems {
   private runPages: string[] = [
@@ -126,7 +125,7 @@ class SearchItems {
     wsForm.addRadio(p2, 'plus-ws-coin', 'コイン');
     wsForm.addRadio(p2, 'plus-ws-other', 'その他');
 
-    let text:string = this.isYgg() ? 'Y鯖からしか入れれない' : 'エキスパートのみ';
+    let text:string = this.isYgg() ? 'Y鯖からしか入れられない' : 'エキスパートのみ';
     wsForm.addRadio(p2, 'plus-ws-expert-only', text);
 
     div.append(p2);
