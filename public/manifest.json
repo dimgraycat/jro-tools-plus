@@ -1,7 +1,7 @@
 {
     "name": "jRo Tools Plus",
     "description": "jROの公式ページを便利にツール",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "manifest_version": 3,
     "icons": {
         "16": "images/icon-16.png",
@@ -23,7 +23,11 @@
             "19": "images/icon-19.png"
         }
     },
-    "permissions": [],
+    "permissions": [
+        "storage",
+        "unlimitedStorage",
+        "tabs"
+    ],
     "web_accessible_resources": [{
         "resources": [
             "scripts/worldstorage_plus.js",
@@ -32,5 +36,9 @@
         "matches": [
             "https://*/*"
         ]
-    }]
+    }],
+    "background": {
+        "service_worker": "scripts/background.js",
+        "type": "module"
+    }
 }

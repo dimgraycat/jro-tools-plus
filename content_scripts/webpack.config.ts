@@ -1,13 +1,17 @@
 import path from 'path'
 import CopyPlugin from 'copy-webpack-plugin'
+import glob from 'glob'
 
+const entries = {};
+const srcFiles = `./scripts/*.ts`;
+glob.sync(srcFiles).map(function (file) {
+  const key = file.replace("./scripts/", "").replace(/\.ts$/, "");
+  entries[key] = file;
+});
 const config = {
-    entry: {
-        loader: path.join(__dirname, 'src/scripts', 'loader.ts'),
-        worldstorage_plus: path.join(__dirname, 'src/scripts', 'worldstorage_plus.ts'),
-    },
+    entry: entries,
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, '../dist'),
         filename: 'scripts/[name].js'
     },
     module: {
@@ -15,7 +19,9 @@ const config = {
             {
                 test: /.ts$/,
                 use: 'ts-loader',
-                exclude: '/node_modules/'
+                exclude: [
+                    '/node_modules/',
+                ]
             }
         ]
     },
@@ -25,7 +31,7 @@ const config = {
     plugins: [
         new CopyPlugin({
             patterns: [
-                { from: 'public', to: '.' },
+                { from: '../public', to: '.' },
             ],
         }),
     ]

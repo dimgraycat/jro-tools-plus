@@ -1,7 +1,6 @@
 "use strict"
 
-declare var require: any
-import $ = require('jquery')
+import $ from 'jquery';
 
 export default class WorldstoragePlusForm {
 
@@ -18,10 +17,15 @@ export default class WorldstoragePlusForm {
   }
 
   static isCard(name:string) {
-    let card = /カード$/g
-    let skillCard = /スキルカード$/g
-    if (name.match(skillCard)) {
-      return false
+    let card = /カード(.*逆位置\))?$/g
+    let ignoreList = [
+        /スキルカード$/g,
+        /^幻想叢書完読記念カード$/g
+    ];
+    for (let i = 0; i < ignoreList.length; i++) {
+        if(name.match(ignoreList[i])) {
+          return false;
+        }
     }
     return (name.match(card)) ? true : false
   }
