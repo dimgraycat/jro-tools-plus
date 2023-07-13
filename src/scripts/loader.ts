@@ -9,8 +9,8 @@ let config = [
   },
   {
     "domain": "rotool.gungho.jp",
-    "regex": /^\/torihiki\/.*/g,
-    "js": ['scripts/torihiki_plus.js'],
+    "regex": /^\/(monster|item)\/.*/g,
+    "js": [],
     "css": ['css/jro_tools_plus.min.css']
   }
 ]

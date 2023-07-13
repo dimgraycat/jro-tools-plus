@@ -12,9 +12,9 @@
     "content_scripts": [{
         "run_at": "document_end",
         "matches": [
-            "*://*.gungho.jp/torihiki/*",
-            "*://*.gungho.jp/gameguide/system/worldstorage/sta.html",
-            "*://*.gungho.jp/gameguide/system/worldstorage/ygg.html"
+            "https://rotool.gungho.jp/*",
+            "https://*.gungho.jp/gameguide/system/worldstorage/sta.html",
+            "https://*.gungho.jp/gameguide/system/worldstorage/ygg.html"
         ],
         "js": ["scripts/loader.js"]
     }],
@@ -26,7 +26,6 @@
     "permissions": [],
     "web_accessible_resources": [{
         "resources": [
-            "scripts/torihiki_plus.js",
             "scripts/worldstorage_plus.js",
             "css/jro_tools_plus.min.css"
         ],

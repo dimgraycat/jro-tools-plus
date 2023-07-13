@@ -4,7 +4,6 @@ import CopyPlugin from 'copy-webpack-plugin'
 const config = {
     entry: {
         loader: path.join(__dirname, 'src/scripts', 'loader.ts'),
-        torihiki_plus: path.join(__dirname, 'src/scripts', 'torihiki_plus.ts'),
         worldstorage_plus: path.join(__dirname, 'src/scripts', 'worldstorage_plus.ts'),
     },
     output: {
