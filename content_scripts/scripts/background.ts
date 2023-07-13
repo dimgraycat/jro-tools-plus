@@ -1,5 +1,5 @@
 import { browser } from 'webextension-polyfill-ts'
-
+/*
 const test = (): void => {
     browser.tabs.create({
         url: "/tools/index.html"
@@ -9,3 +9,4 @@ const test = (): void => {
 (() => {
     browser.action.onClicked.addListener(test)
 })()
+*/
