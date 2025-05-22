@@ -1,44 +1,31 @@
-import { browser } from 'webextension-polyfill-ts'
+import './../sass/jro_tools_plus.scss'; // Webpackで処理するためにSCSSをインポート
 
-let config = [
-  {
-    "domain": "ragnarokonline.gungho.jp",
-    "regex": /^\/gameguide\/system\/worldstorage\/(sta.html|ygg.html)/g,
-    "js": ['scripts/worldstorage_plus.js'],
-    "css": ['css/jro_tools_plus.min.css']
-  },
+interface SiteRule {
+  domain: string;
+  regex: RegExp;
+  js: string[];
+  // css: string[]; // manifest.jsonでCSSを指定するため、この行は不要になります
+}
+
+const siteConfigs: SiteRule[] = [
   {
     "domain": "rotool.gungho.jp",
     "regex": /^\/(monster|map)\/.*/g,
     "js": [],
-    "css": ['css/jro_tools_plus.min.css']
   }
-]
+];
 
-let script = (list: string[]): void => {
+const injectScripts = (list: string[]): void => {
   list.forEach((file) => {
-    let elem = document.createElement('script')
-    elem.setAttribute('src', browser.runtime.getURL(file))
-    document.body.appendChild(elem)
-  })
-}
+    const elem = document.createElement('script');
+    elem.setAttribute('src', chrome.runtime.getURL(file));
+    document.body?.appendChild(elem);
+  });
+};
 
-let css = (list: string[]): void => {
-  list.forEach((file) => {
-    let link = document.createElement("link")
-    link.href = browser.runtime.getURL(file)
-    link.type = "text/css"
-    link.rel = "stylesheet"
-    document.getElementsByTagName("head")[0].appendChild(link)
-  })
-}
-
-let uri = new URL(location.href)
-config.forEach((data: any): void => {
-  if (uri.host === data.domain && uri.pathname.match(data.regex)) {
-    script(data.js)
-    css(data.css)
+const currentUrl = new URL(location.href);
+siteConfigs.forEach((config: SiteRule): void => {
+  if (currentUrl.host === config.domain && currentUrl.pathname.match(config.regex)) {
+    injectScripts(config.js);
   }
-})
-
-
+});

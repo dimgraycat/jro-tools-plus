@@ -12,11 +12,10 @@
     "content_scripts": [{
         "run_at": "document_end",
         "matches": [
-            "https://rotool.gungho.jp/*",
-            "https://*.gungho.jp/gameguide/system/worldstorage/sta.html",
-            "https://*.gungho.jp/gameguide/system/worldstorage/ygg.html"
+            "https://rotool.gungho.jp/*"
         ],
-        "js": ["scripts/loader.js"]
+        "js": ["scripts/loader.js"],
+        "css": ["css/jro_tools_plus.min.css"]
     }],
     "action": {
         "default_icon": {
