@@ -10,20 +10,27 @@ const __dirname = path.dirname(__filename);
 const isProduction = process.env.NODE_ENV === 'production';
 
 const entries: Record<string, string> = {};
-const filesPattern = 'scripts/*.ts';
 
-globSync(filesPattern, { cwd: __dirname }).forEach(function (relativePath) {
-    const key = path.basename(relativePath, '.ts');
-    entries[key] = `./${relativePath}`;
+globSync('content_scripts/scripts/*.ts', { cwd: __dirname }).forEach((filePath) => {
+    const name = path.basename(filePath, '.ts'); // 'loader'
+    const entryKey = `content_scripts/${name}`;
+    entries[entryKey] = `./${filePath}`; // e.g. './content_scripts/scripts/loader.ts'
 });
+
+globSync('tools/js/*.js', { cwd: __dirname }).forEach((filePath) => {
+    const name = path.basename(filePath, '.js'); // 'jro-tools-settings'
+    const entryKey = `tools/js/${name}`;
+    entries[entryKey] = `./${filePath}`; // e.g. './tools/js/jro-tools-settings.js'
+});
+
 const config = {
     mode: isProduction ? 'production' : 'development',
     context: __dirname,
     devtool: isProduction ? false : 'inline-source-map',
     entry: entries,
     output: {
-        path: path.join(__dirname, '../dist'),
-        filename: 'scripts/[name].js'
+        path: path.join(__dirname, 'dist'),
+        filename: '[name].js' // Output filename based on entry key structure (e.g., content_scripts/loader.js)
     },
     module: {
         rules: [
@@ -33,10 +40,12 @@ const config = {
                     {
                         loader: 'ts-loader',
                         options: {
-                            configFile: path.resolve(__dirname, 'tsconfig.json'), // tsconfig.jsonのパスを明示的に指定
-                            logLevel: 'info', // 'debug' にするとさらに詳細なログが出力されます
-                            logInfoToStdOut: true, // ログを標準出力に表示
-                            transpileOnly: true // 型チェックをスキップ (デバッグ用)
+                            // tsconfig.jsonのパスをプロジェクトルートに指定
+                            // content_scripts内のTSファイルもこの設定で処理される想定
+                            configFile: path.resolve(__dirname, 'tsconfig.json'),
+                            logLevel: 'info',
+                            logInfoToStdOut: true,
+                            transpileOnly: true // 型チェックは別途行う想定
                         }
                     }
                 ],
@@ -72,12 +81,17 @@ const config = {
         new CopyPlugin({
             patterns: [
                 {
-                    from: path.resolve(__dirname, '../public'),
-                    to: '.'
+                    from: path.resolve(__dirname, 'public'), // publicディレクトリの内容をdistにコピー
+                    to: '.' // distディレクトリ直下に展開
                 },
+                {
+                    from: path.resolve(__dirname, 'tools/index.html'), // tools/index.htmlをコピー
+                    to: 'tools/index.html' // dist/tools/index.html に配置
+                }
             ],
         }),
         new MiniCssExtractPlugin({
+            // SCSSから生成されるCSSファイル
             filename: isProduction ? 'css/jro_tools_plus.min.css' : 'css/jro_tools_plus.css',
         }),
     ]

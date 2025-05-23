@@ -19,6 +19,7 @@
   },
   "include": [
     "scripts/**/*.ts",    // コンパイル対象のスクリプト
+    "webpack.config.ts" // webpack設定ファイル自体もTypeScriptの場合
   ],
   "exclude": [
     "node_modules",
