@@ -81,13 +81,17 @@ const config = {
         new CopyPlugin({
             patterns: [
                 {
-                    from: path.resolve(__dirname, 'public'), // publicディレクトリの内容をdistにコピー
-                    to: '.' // distディレクトリ直下に展開
+                    from: path.resolve(__dirname, 'public'),
+                    to: '.'
                 },
                 {
-                    from: path.resolve(__dirname, 'tools/index.html'), // tools/index.htmlをコピー
-                    to: 'tools/index.html' // dist/tools/index.html に配置
-                }
+                    from: path.resolve(__dirname, 'tools/index.html'),
+                    to: 'tools/index.html'
+                },
+                {
+                    from: path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
+                    to: 'tools/webfonts'
+                },
             ],
         }),
         new MiniCssExtractPlugin({
