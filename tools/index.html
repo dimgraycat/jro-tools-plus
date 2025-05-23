@@ -17,30 +17,33 @@
       </div>
       <nav class="mt-4">
         <ul>
-          <!-- 選択中 -->
-          <li class="bg-gray-100 border-l-4 border-blue-500">
-            <a href="#" class="flex items-center px-6 py-3 text-blue-600 font-semibold">
+          <li class="hover:bg-gray-100 border-l-4 border-white js-menu-money">
+            <a href="#money" class="flex items-center px-6 py-3 text-gray-700">
+              <span class="inline-block w-6 text-center">
+                <i class="fas fa-file"></i>
+              </span>
+              <span class="ml-2">所持Zeny</span>
+            </a>
+          </li>
+          <li class="hover:bg-gray-100 border-l-4 border-white js-menu-options">
+            <a href="#options" class="flex items-center px-6 py-3 text-gray-700">
               <span class="inline-block w-6 text-center">
                 <i class="fas fa-cog"></i>
               </span>
               <span class="ml-2">オプション</span>
             </a>
           </li>
-          <!-- 未選択 -->
-          <li class="hover:bg-gray-100 border-l-4 border-white">
-            <a href="#" class="flex items-center px-6 py-3 text-gray-700">
-              <span class="inline-block w-6 text-center">
-                <i class="fas fa-regular fa-file"></i>
-              </span>
-              <span class="ml-2">準備中...</span>
-            </a>
-          </li>
         </ul>
       </nav>
     </aside>
 
-    <!-- メインコンテンツ -->
-    <main class="flex-1 p-8 js-pages-options">
+    <!-- 所持Zenyコンテンツ -->
+    <main id="money" class="flex-1 p-8 js-pages-money hidden">
+      <h1 class="text-2xl font-bold mb-6">所持Zeny</h1>
+    </main>
+
+    <!-- optionsコンテンツ -->
+    <main id="options" class="flex-1 p-8 js-pages-options hidden">
       <h1 class="text-2xl font-bold mb-6">オプション</h1>
 
       <!-- オプション項目コンテナ -->
