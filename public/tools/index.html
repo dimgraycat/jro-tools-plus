@@ -1,11 +1,103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>HTML Sample</title>
-  <script src="/scripts/loader.js" defer=""></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>設定ページ</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
 </head>
-<body>
-  <div>test page</div>
+<body class="bg-gray-50 text-gray-800">
+
+  <div class="flex min-h-screen">
+    <!-- サイドバー -->
+    <aside class="w-64 bg-white shadow-md">
+      <div class="p-6 text-2xl font-bold border-b">
+        jRoToolsPlus
+      </div>
+      <nav class="mt-4">
+        <ul>
+          <!-- 選択中 -->
+          <li class="bg-gray-100 border-l-4 border-blue-500">
+            <a href="#" class="flex items-center px-6 py-3 text-blue-600 font-semibold">
+              <span class="inline-block w-6 text-center">
+                <i class="fas fa-cog"></i>
+              </span>
+              <span class="ml-2">オプション</span>
+            </a>
+          </li>
+          <!-- 未選択 -->
+          <li class="hover:bg-gray-100 border-l-4 border-white">
+            <a href="#" class="flex items-center px-6 py-3 text-gray-700">
+              <span class="inline-block w-6 text-center">
+                <i class="fas fa-regular fa-file"></i>
+              </span>
+              <span class="ml-2">準備中...</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 p-8 js-pages-options">
+      <h1 class="text-2xl font-bold mb-6">オプション</h1>
+
+      <!-- オプション項目コンテナ -->
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">機能設定</h2>
+
+        <!-- 個別のオプション項目 -->
+        <div class="flex items-center justify-between py-3 border-b last:border-b-0">
+          <div>
+            <h3 class="text-lg font-medium">機能Aを有効にする</h3>
+            <p class="text-sm text-gray-500">この機能を有効にすると、〇〇が利用可能になります。</p>
+          </div>
+          <!-- トグルスイッチ -->
+          <label for="toggle-feature-a" class="flex items-center cursor-pointer">
+            <div class="relative">
+              <input type="checkbox" id="toggle-feature-a" class="sr-only peer" checked>
+              <div class="w-10 h-4 bg-gray-300 rounded-full shadow-inner peer-checked:bg-green-500"></div>
+              <div class="dot absolute w-6 h-6 bg-white rounded-full shadow -left-1 -top-1 transition-all duration-200 ease-in-out peer-checked:translate-x-full peer-checked:bg-green-100"></div>
+            </div>
+          </label>
+        </div>
+        <!-- 個別のオプション項目 (機能B - デフォルトでオン) -->
+        <div class="flex items-center justify-between py-3 border-b last:border-b-0">
+          <div>
+            <h3 class="text-lg font-medium">機能Bを有効にする</h3>
+            <p class="text-sm text-gray-500">この機能はデフォルトで有効になっており、△△を改善します。</p>
+          </div>
+          <!-- トグルスイッチ (デフォルトでオン) -->
+          <label for="toggle-feature-b" class="flex items-center cursor-pointer">
+            <div class="relative">
+              <input type="checkbox" id="toggle-feature-b" class="sr-only peer" checked>
+              <div class="w-10 h-4 bg-gray-300 rounded-full shadow-inner peer-checked:bg-green-500"></div>
+              <div class="dot absolute w-6 h-6 bg-white rounded-full shadow -left-1 -top-1 transition-all duration-200 ease-in-out peer-checked:translate-x-full peer-checked:bg-green-100"></div>
+            </div>
+          </label>
+        </div>
+
+        <!-- 個別のオプション項目 (機能C - デフォルトでオフ) -->
+        <div class="flex items-center justify-between py-3 border-b last:border-b-0">
+          <div>
+            <h3 class="text-lg font-medium">機能Cを有効にする</h3>
+            <p class="text-sm text-gray-500">この機能は□□の表示を切り替えます。</p>
+          </div>
+          <!-- トグルスイッチ (デフォルトでオフ) -->
+          <label for="toggle-feature-c" class="flex items-center cursor-pointer">
+            <div class="relative">
+              <input type="checkbox" id="toggle-feature-c" class="sr-only peer">
+              <div class="w-10 h-4 bg-gray-300 rounded-full shadow-inner peer-checked:bg-green-500"></div>
+              <div class="dot absolute w-6 h-6 bg-white rounded-full shadow -left-1 -top-1 transition-all duration-200 ease-in-out peer-checked:translate-x-full peer-checked:bg-green-100"></div>
+            </div>
+          </label>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/jro-tools-settings.js"></script>
 </body>
 </html>
