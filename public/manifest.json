@@ -14,13 +14,12 @@
         "matches": [
             "https://rotool.gungho.jp/*"
         ],
-        "js": ["scripts/loader.js"],
+        "js": ["content_scripts/loader.js"],
         "css": ["css/jro_tools_plus.min.css"]
     }],
     "action": {
-        "default_icon": {
-            "19": "images/icon-19.png"
-        }
+        "default_popup": "tools/index.html",
+        "default_icon": "images/icon-19.png"
     },
     "permissions": [
         "storage",
@@ -29,15 +28,10 @@
     ],
     "web_accessible_resources": [{
         "resources": [
-            "scripts/worldstorage_plus.js",
             "css/jro_tools_plus.min.css"
         ],
         "matches": [
             "https://*/*"
         ]
-    }],
-    "background": {
-        "service_worker": "scripts/background.js",
-        "type": "module"
-    }
+    }]
 }
