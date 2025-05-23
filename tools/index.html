@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <div class="flex min-h-screen w-[48rem] mx-auto">
+  <div class="flex min-h-screen w-[48rem]">
     <!-- サイドバー -->
     <aside class="w-64 bg-white shadow-md">
       <div class="p-6 text-2xl font-bold border-b">
@@ -19,19 +19,19 @@
           <li class="hover:bg-gray-100 border-l-4 border-white js-menu-money">
             <a href="#money" class="flex items-center px-6 py-3 text-gray-700">
               <span class="inline-block w-6 text-center">
-                <i class="fas fa-file"></i>
+                <i class="fa-solid fa-money-check-dollar"></i>
               </span>
               <span class="ml-2">所持Zeny</span>
             </a>
           </li>
-          <li class="hover:bg-gray-100 border-l-4 border-white js-menu-options">
+          <!--<li class="hover:bg-gray-100 border-l-4 border-white js-menu-options">
             <a href="#options" class="flex items-center px-6 py-3 text-gray-700">
               <span class="inline-block w-6 text-center">
                 <i class="fas fa-cog"></i>
               </span>
               <span class="ml-2">オプション</span>
             </a>
-          </li>
+          </li>-->
         </ul>
       </nav>
     </aside>
@@ -39,6 +39,18 @@
     <!-- 所持Zenyコンテンツ -->
     <main id="money" class="flex-1 p-8 js-pages-money hidden">
       <h1 class="text-2xl font-bold mb-6">所持Zeny</h1>
+      <div class="bg-white shadow rounded-lg p-6">
+        <p class="mb-4 text-sm text-gray-600">
+          所持Zeny情報を「キャラクター情報ページ」から収集します。
+        </p>
+        <button id="zeny-crawl-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4">
+          Zeny情報収集開始
+        </button>
+        <span id="zeny-crawl-last-updated" class="text-xs text-gray-500 ml-2"></span>
+        <div id="zeny-crawl-status" class="text-sm text-gray-600 mb-2"></div>
+        <h2 class="text-xl font-semibold mb-2">収集結果:</h2>
+        <pre id="zeny-crawl-results-output" class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"></pre>
+      </div>
     </main>
 
     <!-- optionsコンテンツ -->
@@ -101,5 +113,6 @@
   </div>
 
   <script src="./js/jro-tools-settings.js"></script>
+  <script src="./js/zeny-characterpage-scraper.js"></script>
 </body>
 </html>

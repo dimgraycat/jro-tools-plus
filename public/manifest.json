@@ -24,11 +24,13 @@
     "permissions": [
         "storage",
         "unlimitedStorage",
-        "tabs"
+        "activeTab",
+        "scripting"
     ],
     "web_accessible_resources": [{
         "resources": [
-            "css/jro_tools_plus.min.css"
+            "css/jro_tools_plus.min.css",
+            "tools/js/zeny-characterpage-scraper.js"
         ],
         "matches": [
             "https://*/*"

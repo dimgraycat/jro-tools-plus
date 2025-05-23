@@ -17,6 +17,12 @@ globSync('content_scripts/scripts/*.ts', { cwd: __dirname }).forEach((filePath) 
     entries[entryKey] = `./${filePath}`; // e.g. './content_scripts/scripts/loader.ts'
 });
 
+globSync('tools/ts/*.ts', { cwd: __dirname }).forEach((filePath) => {
+    const name = path.basename(filePath, '.ts');
+    const entryKey = `tools/js/${name}`;
+    entries[entryKey] = `./${filePath}`; // e.g. './tools/ts/*.ts'
+});
+
 globSync('tools/js/*.js', { cwd: __dirname }).forEach((filePath) => {
     const name = path.basename(filePath, '.js'); // 'jro-tools-settings'
     const entryKey = `tools/js/${name}`;
