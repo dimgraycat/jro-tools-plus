@@ -8,9 +8,9 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <div class="flex min-h-screen w-[48rem]">
+  <div class="min-h-screen w-[48rem] relative">
     <!-- サイドバー -->
-    <aside class="w-64 bg-white shadow-md">
+    <aside class="w-64 bg-white shadow-md fixed top-0 left-0 h-screen overflow-y-auto z-10">
       <div class="p-6 text-2xl font-bold border-b">
         jRoToolsPlus
       </div>
@@ -37,24 +37,33 @@
     </aside>
 
     <!-- 所持Zenyコンテンツ -->
-    <main id="money" class="flex-1 p-8 js-pages-money hidden">
+    <main id="money" class="ml-64 flex-1 p-8 js-pages-money hidden break-words">
       <h1 class="text-2xl font-bold mb-6">所持Zeny</h1>
       <div class="bg-white shadow rounded-lg p-6">
         <p class="mb-4 text-sm text-gray-600">
-          所持Zeny情報を「キャラクター情報ページ」から収集します。
+          所持Zenyを「キャラクター情報ページ」から収集します
         </p>
         <button id="zeny-crawl-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4">
           取得開始
         </button>
         <span id="zeny-crawl-last-updated" class="text-xs text-gray-500 ml-2"></span>
         <div id="zeny-crawl-status" class="text-sm text-gray-600 mb-2"></div>
-        <h2 class="text-xl font-semibold mb-2">結果:</h2>
+        <!-- Zeny表示形式選択ラジオボタン -->
+        <div class="mb-4 text-sm">
+          <span class="mr-2 text-gray-700">表示形式:</span>
+          <label class="mr-3 cursor-pointer">
+            <input type="radio" name="zenyDisplayMode" value="short" class="mr-1 align-middle" checked> 省略 (G/M/K)
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="zenyDisplayMode" value="full" class="mr-1 align-middle"> 全桁表示
+          </label>
+        </div>
         <pre id="zeny-crawl-results-output" class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"></pre>
       </div>
     </main>
 
     <!-- optionsコンテンツ -->
-    <main id="options" class="flex-1 p-8 js-pages-options hidden">
+    <main id="options" class="ml-64 flex-1 p-8 js-pages-options hidden break-words">
       <h1 class="text-2xl font-bold mb-6">オプション</h1>
 
       <!-- オプション項目コンテナ -->
