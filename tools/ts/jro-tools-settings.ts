@@ -38,6 +38,18 @@ function formatActualZeny(zeny: number): string {
   return zeny.toLocaleString() + " Zeny";
 }
 
+// --- Date Formatting Helper ---
+function formatTimestampToYyyyMmDdHhMmSs(timestamp: number): string {
+  const date = new Date(timestamp);
+  const YYYY = date.getFullYear();
+  const MM = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const DD = String(date.getDate()).padStart(2, '0');
+  const HH = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${YYYY}/${MM}/${DD} ${HH}:${mm}:${ss}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const menuItems = document.querySelectorAll('aside nav ul li[class*="js-menu-"]');
     const pageElements = document.querySelectorAll('main[class*="js-pages-"]');
@@ -191,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const zenyCrawlButton = document.getElementById('zeny-crawl-button') as HTMLButtonElement | null;
     const zenyCrawlStatus = document.getElementById('zeny-crawl-status') as HTMLElement | null;
     const zenyCrawlResultsOutput = document.getElementById('zeny-crawl-results-output') as HTMLElement | null;
-    const zenyCrawlLastUpdated = document.getElementById('zeny-crawl-last-updated') as HTMLElement | null; // 前回更新日時表示用
+    const zenyCrawlLastUpdated = document.getElementById('zeny-crawl-last-updated') as HTMLElement | null; // 前回取得日時表示用
 
     const targetUrlPattern = /^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$/;
 
@@ -209,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const timestamp = result[ZenyCrawlLastUpdatedStorageKey];
                 if (timestamp && typeof timestamp === 'number') {
-                    zenyCrawlLastUpdated.textContent = `前回更新: ${new Date(timestamp).toLocaleString()}`;
+                    zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(timestamp)}`;
                     checkCooldown(timestamp); // クールダウン状態も確認
                 }
             });
@@ -431,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (chrome.runtime.lastError) {
                                     console.error("Error saving last updated timestamp:", chrome.runtime.lastError.message);
                                 } else if (zenyCrawlLastUpdated) {
-                                    zenyCrawlLastUpdated.textContent = `前回取得: ${new Date(now).toLocaleString()}`;
+                                    zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(now)}`;
                                     checkCooldown(now); // 実行後にもクールダウン開始
                                 }
                             });
@@ -449,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          if (chrome.storage && chrome.storage.local && zenyCrawlLastUpdated) {
                             chrome.storage.local.set({ [ZenyCrawlLastUpdatedStorageKey]: now }, () => {
                                 if (chrome.runtime.lastError) console.error("Error saving last updated timestamp (no data):", chrome.runtime.lastError.message);
-                                else zenyCrawlLastUpdated.textContent = `前回取得: ${new Date(now).toLocaleString()}`;
+                                else zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(now)}`;
                                 checkCooldown(now);
                             });
                         } else {
@@ -532,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 zenyCrawlButton.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400');
                 zenyCrawlButton.classList.remove('bg-blue-500', 'hover:bg-blue-700');
                 
-                zenyCrawlStatus.textContent = 'このページは取得の対象外ページです';
+                zenyCrawlStatus.textContent = '取得対象外のページです';
                 zenyCrawlStatus.classList.remove('text-green-500', 'text-red-500');
                 zenyCrawlStatus.classList.add('text-yellow-600');
 
