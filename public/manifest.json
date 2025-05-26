@@ -1,7 +1,7 @@
 {
     "name": "jRo Tools Plus",
     "description": "jROの公式ページを便利にツール",
-    "version": "1.3.2",
+    "version": "1.4.0",
     "manifest_version": 3,
     "icons": {
         "16": "images/icon-16.png",
@@ -9,14 +9,20 @@
         "128": "images/icon-128.png"
     },
     "homepage_url": "https://chromewebstore.google.com/detail/jro-tools-plus/hgokafkkkicmfmmjnclhmklidgndfkoc?hl=ja&gl=JP",
-    "content_scripts": [{
-        "run_at": "document_end",
-        "matches": [
-            "https://rotool.gungho.jp/*"
-        ],
-        "js": ["content_scripts/loader.js"],
-        "css": ["css/jro_tools_plus.min.css"]
-    }],
+    "content_scripts": [
+        {
+            "run_at": "document_end",
+            "matches": [
+                "https://rotool.gungho.jp/*"
+            ],
+            "js": [
+                "content_scripts/loader.js"
+            ],
+            "css": [
+                "css/jro_tools_plus.min.css"
+            ]
+        }
+    ],
     "action": {
         "default_popup": "tools/index.html",
         "default_icon": "images/icon-19.png"
@@ -27,15 +33,17 @@
         "activeTab",
         "scripting"
     ],
-    "web_accessible_resources": [{
-        "resources": [
-            "css/jro_tools_plus.min.css",
-            "tools/js/zeny-characterpage-scraper.js"
-        ],
-        "matches": [
-            "https://rotool.gungho.jp/*",
-            "https://rowebtool.gungho.jp/*",
-            "https://ragnarokonline.gungho.jp/*"
-        ]
-    }]
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "css/jro_tools_plus.min.css",
+                "tools/js/zeny-characterpage-scraper.js"
+            ],
+            "matches": [
+                "https://rotool.gungho.jp/*",
+                "https://rowebtool.gungho.jp/*",
+                "https://ragnarokonline.gungho.jp/*"
+            ]
+        }
+    ]
 }
