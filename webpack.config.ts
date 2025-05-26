@@ -29,6 +29,12 @@ globSync('tools/js/*.js', { cwd: __dirname }).forEach((filePath) => {
     entries[entryKey] = `./${filePath}`; // e.g. './tools/js/jro-tools-settings.js'
 });
 
+globSync('sidebar/ts/*.ts', { cwd: __dirname }).forEach((filePath) => {
+    const name = path.basename(filePath, '.ts');
+    const entryKey = `sidebar/js/${name}`;
+    entries[entryKey] = `./${filePath}`; // e.g. './sidebar/ts/*.ts'
+});
+
 const config = {
     mode: isProduction ? 'production' : 'development',
     context: __dirname,
@@ -97,6 +103,14 @@ const config = {
                 {
                     from: path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
                     to: 'tools/webfonts'
+                },
+                {
+                    from: path.resolve(__dirname, 'sidebar/index.html'),
+                    to: 'sidebar/index.html'
+                },
+                {
+                    from: path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),
+                    to: 'sidebar/webfonts'
                 },
             ],
         }),
