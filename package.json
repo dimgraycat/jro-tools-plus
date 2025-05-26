@@ -52,7 +52,7 @@
     "bump:major:dryrun": "npm run release -- --release as major --dry-run"
   },
   "name": "jro-tools-plus",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "repository": "git@github.com:dimgraycat/jro-tools-plus.git",
   "author": "dimgraycat <dimgray.cat@gmail.com>",
   "license": "MIT"
