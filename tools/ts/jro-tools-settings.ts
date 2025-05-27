@@ -588,11 +588,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayNameInput.removeAttribute('readonly');
                 displayNameInput.focus(); // テキストボックスにフォーカスを当てる
                 // ボタンのテキストを「変更」に変更
-                updateDisplayNameButton.textContent = '変更';
+                const icon = updateDisplayNameButton.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-pencil-alt');
+                    icon.classList.add('fa-save');
+                }
+                updateDisplayNameButton.setAttribute('title', '変更を保存');
 
                 // オプション: ボタンのスタイルを変更して編集中であることを視覚的に示すことも可能です
                 // 例: updateDisplayNameButton.classList.replace('bg-green-500', 'bg-blue-500');
-                //     updateDisplayNameButton.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
             } else {
                 // 現在のボタンテキストが「変更」（テキストボックスが編集中）の場合
                 const newDisplayName = displayNameInput.value;
@@ -612,8 +616,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // テキストボックスを再度読み取り専用に戻す
                 displayNameInput.setAttribute('readonly', 'true');
-                // ボタンのテキストを「変更する」に戻す
-                updateDisplayNameButton.textContent = '変更する';
+                // ボタンのアイコンを「鉛筆」アイコンに戻す
+                const icon = updateDisplayNameButton.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-save');
+                    icon.classList.add('fa-pencil-alt');
+                }
+                updateDisplayNameButton.setAttribute('title', '表示名を変更する');
                 // alert('表示名を変更しました（実際の保存処理はコンソールログを確認してください）'); // ユーザーへのフィードバック例
             }
         });

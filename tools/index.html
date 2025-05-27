@@ -43,11 +43,12 @@
         <p class="mb-4 text-sm text-gray-600">
           所持Zenyを「キャラクター情報ページ」から収集します
         </p>
+        <div class="mb-2 text-right"> <!-- 前回取得日時をここに移動 -->
+          <span id="zeny-crawl-last-updated" class="text-xs text-gray-500"></span>
+        </div>
         <div class="flex items-center mb-4 w-full">
           <select id="zeny-crawl-target-select" class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block py-2 px-3 mr-2 flex-1">
-            <option value="1" selected>1: オプション1</option>
-            <option value="2">2: オプション2</option>
-            <option value="3">3: オプション3</option>
+            <option value="1" selected>1: アカウント1</option>
           </select>
           <button id="zeny-crawl-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex-shrink-0">
             取得開始
@@ -55,15 +56,27 @@
           <button id="zeny-toggle-display-name-button" class="p-2 ml-2 text-gray-600 hover:text-gray-800 focus:outline-none" title="表示名設定">
             <i class="fas fa-cog fa-lg"></i>
           </button>
-          <span id="zeny-crawl-last-updated" class="text-xs text-gray-500 ml-2"></span>
         </div>
         <!-- 表示名変更UI -->
-        <div id="zeny-display-name-section" class="flex items-center mb-4 w-full hidden">
-          <span class="text-xs text-gray-700 mr-2 whitespace-nowrap">表示名</span>
-          <input type="text" id="zeny-display-name-input" class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 read-only:focus:ring-transparent read-only:focus:border-gray-300 block py-2 px-3 mr-2 flex-1" placeholder="例: メインアカウント" readonly>
-          <button id="zeny-update-display-name-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex-shrink-0 text-xs">
-            変更する
-          </button>
+        <div id="zeny-display-name-section" class="mb-4 w-full hidden bg-gray-100 border border-gray-200 rounded-lg p-3">
+          <!-- 1段目: 表示名編集 (既存のUI) -->
+          <div class="flex items-center mb-3 pb-3 border-b border-gray-300">
+            <span class="text-xs text-gray-700 mr-2 whitespace-nowrap">表示名</span>
+            <input type="text" id="zeny-display-name-input" class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 read-only:focus:ring-transparent read-only:focus:border-gray-300 block py-2 px-3 mr-2 flex-1" placeholder="例: メインアカウント" readonly>
+            <button id="zeny-update-display-name-button" class="bg-green-500 hover:bg-green-700 text-white font-bold p-2 rounded focus:outline-none focus:shadow-outline flex-shrink-0 text-xs" title="表示名を変更する">
+              <i class="fas fa-pencil-alt"></i>
+            </button>
+          </div>
+
+          <!-- 2段目: アカウント操作 (追加/削除) -->
+          <div class="flex items-center justify-end">
+            <button id="zeny-add-account-button" class="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded mr-2 flex items-center" title="新しいアカウントを追加">
+              <i class="fas fa-plus mr-1"></i> 追加
+            </button>
+            <button id="zeny-delete-account-button" class="bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded flex items-center" title="選択中のアカウントを削除">
+              <i class="fas fa-trash-alt mr-1"></i> 削除
+            </button>
+          </div>
         </div>
 
 
