@@ -564,4 +564,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeZenyCrawlFeatureState(); // ボタン状態などの初期設定
     loadZenyDisplayPreference(); // 表示設定を読み込み、それに基づいて結果を表示
+
+    // --- 表示名変更機能 ---
+    const displayNameInput = document.getElementById('zeny-display-name-input') as HTMLInputElement | null;
+    const updateDisplayNameButton = document.getElementById('zeny-update-display-name-button') as HTMLButtonElement | null;
+
+    const toggleDisplayNameButton = document.getElementById('zeny-toggle-display-name-button') as HTMLButtonElement | null;
+    const displayNameSection = document.getElementById('zeny-display-name-section') as HTMLDivElement | null;
+
+    if (toggleDisplayNameButton && displayNameSection) {
+        toggleDisplayNameButton.addEventListener('click', () => {
+            displayNameSection.classList.toggle('hidden');
+        });
+    }
+
+    if (displayNameInput && updateDisplayNameButton) {
+        // 初期状態: HTML側で readonly 属性が設定され、ボタンテキストが「変更する」であることを前提としています。
+
+        updateDisplayNameButton.addEventListener('click', () => {
+            if (displayNameInput.hasAttribute('readonly')) {
+                // 現在のボタンテキストが「変更する」（テキストボックスが読み取り専用）の場合
+                // テキストボックスを編集可能にする
+                displayNameInput.removeAttribute('readonly');
+                displayNameInput.focus(); // テキストボックスにフォーカスを当てる
+                // ボタンのテキストを「変更」に変更
+                updateDisplayNameButton.textContent = '変更';
+
+                // オプション: ボタンのスタイルを変更して編集中であることを視覚的に示すことも可能です
+                // 例: updateDisplayNameButton.classList.replace('bg-green-500', 'bg-blue-500');
+                //     updateDisplayNameButton.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+            } else {
+                // 現在のボタンテキストが「変更」（テキストボックスが編集中）の場合
+                const newDisplayName = displayNameInput.value;
+
+                // --- ここに表示名を保存する具体的なロジックを実装します ---
+                // 例えば、選択されているオプション (zeny-crawl-target-select の value) と
+                // newDisplayName を紐付けて localStorage などに保存する処理が考えられます。
+                // const selectedTarget = (document.getElementById('zeny-crawl-target-select') as HTMLSelectElement)?.value;
+                // if (selectedTarget) {
+                //   console.log(`ターゲット「${selectedTarget}」の表示名を「${newDisplayName}」として保存します。`);
+                //   // localStorage.setItem(`displayName_for_target_${selectedTarget}`, newDisplayName);
+                // } else {
+                //   console.warn('表示名を保存するためのターゲットが選択されていません。');
+                // }
+                console.log('「変更」ボタンがクリックされました。表示名を保存する処理を実装する必要があります。入力された値:', newDisplayName);
+                // ----------------------------------------------------
+
+                // テキストボックスを再度読み取り専用に戻す
+                displayNameInput.setAttribute('readonly', 'true');
+                // ボタンのテキストを「変更する」に戻す
+                updateDisplayNameButton.textContent = '変更する';
+                // alert('表示名を変更しました（実際の保存処理はコンソールログを確認してください）'); // ユーザーへのフィードバック例
+            }
+        });
+    }
 });
