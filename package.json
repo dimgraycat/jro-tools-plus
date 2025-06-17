@@ -44,12 +44,12 @@
     "watch:js": "cross-env NODE_ENV=development webpack --watch",
     "build:css:prod": "tailwindcss -i ./tools/css/app.css -o ./dist/tools/css/style.css --minify",
     "release": "standard-version",
-    "bump": "npm run release -- --release as patch",
-    "bump:minor": "npm run release -- --release as minor",
-    "bump:major": "npm run release -- --release as major",
-    "bump:dryrun": "npm run release -- --release as patch --dry-run",
-    "bump:minor:dryrun": "npm run release -- --release as minor --dry-run",
-    "bump:major:dryrun": "npm run release -- --release as major --dry-run"
+    "bump": "npm run release -- --release-as patch",
+    "bump:minor": "npm run release -- --release-as minor",
+    "bump:major": "npm run release -- --release-as major",
+    "bump:dryrun": "npm run release -- --release-as patch --dry-run",
+    "bump:minor:dryrun": "npm run release -- --release-as minor --dry-run",
+    "bump:major:dryrun": "npm run release -- --release-as major --dry-run"
   },
   "name": "jro-tools-plus",
   "version": "1.3.3",
