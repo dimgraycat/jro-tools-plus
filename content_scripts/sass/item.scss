@@ -10,11 +10,22 @@
 }
 
 .jro-tools-plus-item-link::after {
-    content: "\f08e";
+    content: "open_in_new";
     display: inline-block;
-    font-family: "Font Awesome 6 Free";
-    font-size: 0.8em;
-    font-weight: 900;
+    direction: ltr;
+    font-family: "Material Icons";
+    font-feature-settings: "liga";
+    font-size: 1em;
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: normal;
+    line-height: 1;
     margin-left: 0.25em;
     text-decoration: none;
+    text-transform: none;
+    vertical-align: -0.12em;
+    white-space: nowrap;
+    word-wrap: normal;
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
 }
