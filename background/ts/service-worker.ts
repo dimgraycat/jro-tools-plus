@@ -38,20 +38,6 @@ async function writeWindowOpenState(windowId: number, isOpen: boolean) {
     await chrome.storage.session.set({ [OPEN_WINDOWS_STORAGE_KEY]: windows });
 }
 
-async function isWindowOpen(windowId: number): Promise<boolean> {
-    if (openWindows.has(windowId)) {
-        return true;
-    }
-
-    const windows = await readOpenWindows();
-    if (windows[String(windowId)]) {
-        openWindows.add(windowId);
-        return true;
-    }
-
-    return false;
-}
-
 async function ensureSidePanelEnabled() {
     await chrome.sidePanel.setOptions({
         path: SIDEPANEL_PATH,
@@ -71,10 +57,40 @@ async function closeSidePanel(windowId: number) {
     await ensureSidePanelEnabled();
 }
 
-async function openSidePanel(windowId: number) {
-    await ensureSidePanelEnabled();
-    await chrome.sidePanel.open({ windowId });
-    await writeWindowOpenState(windowId, true);
+function restoreOpenWindowCache() {
+    void readOpenWindows()
+        .then((windows) => {
+            Object.entries(windows).forEach(([windowId, isOpen]) => {
+                const numericWindowId = Number(windowId);
+                if (isOpen && Number.isFinite(numericWindowId)) {
+                    openWindows.add(numericWindowId);
+                }
+            });
+        })
+        .catch((error) => {
+            console.error('Failed to restore side panel state:', error);
+        });
+}
+
+function openSidePanelFromAction(windowId: number) {
+    openWindows.add(windowId);
+
+    void chrome.sidePanel.open({ windowId })
+        .then(() => writeWindowOpenState(windowId, true))
+        .catch((error) => {
+            openWindows.delete(windowId);
+            console.error('Failed to open side panel:', error);
+        });
+}
+
+function closeSidePanelFromAction(windowId: number) {
+    openWindows.delete(windowId);
+
+    void closeSidePanel(windowId)
+        .catch((error) => {
+            console.error('Failed to close side panel:', error);
+            return writeWindowOpenState(windowId, false);
+        });
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -90,14 +106,12 @@ chrome.action.onClicked.addListener((tab) => {
         return;
     }
 
-    void (async () => {
-        if (await isWindowOpen(tab.windowId)) {
-            await closeSidePanel(tab.windowId);
-            return;
-        }
+    if (openWindows.has(tab.windowId)) {
+        closeSidePanelFromAction(tab.windowId);
+        return;
+    }
 
-        await openSidePanel(tab.windowId);
-    })();
+    openSidePanelFromAction(tab.windowId);
 });
 
 sidePanel.onOpened?.addListener((info) => {
@@ -111,5 +125,7 @@ sidePanel.onClosed?.addListener((info) => {
 chrome.windows.onRemoved.addListener((windowId) => {
     void writeWindowOpenState(windowId, false);
 });
+
+restoreOpenWindowCache();
 
 export {};
