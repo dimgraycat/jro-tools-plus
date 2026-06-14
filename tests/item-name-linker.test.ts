@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import {
   buildItemNameEntries,
   findItemNameMatches,
+  getItemNameLinkTargetSelector,
   isItemNameLinkerEnabled,
 } from '../content_scripts/lib/item-name-linker.js';
 
@@ -78,5 +79,14 @@ describe('Item name linker matching', () => {
         end: 14,
       },
     ]);
+  });
+});
+
+describe('Item name linker target', () => {
+  it('targets RagCan lineup lists without depending on the page URL', () => {
+    assert.equal(
+      getItemNameLinkTargetSelector(),
+      '#block-gungho-content > article > div.article__content > div.lineup-list',
+    );
   });
 });

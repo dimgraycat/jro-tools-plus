@@ -13,6 +13,7 @@ const ITEM_NAME_MAP_URL = 'https://asgrcat.github.io/jro-search/data/items/name-
 const ITEM_NAME_LINKER_ENABLED_KEY = 'itemNameLinkerEnabled';
 const ITEM_NAME_LINK_CLASS = 'jro-tools-plus-item-link';
 const ITEM_NAME_LINK_SELECTOR = `a[data-jro-tools-plus-item-link="true"]`;
+const ITEM_NAME_LINK_TARGET_SELECTOR = '#block-gungho-content > article > div.article__content > div.lineup-list';
 const MIN_ITEM_NAME_LENGTH = 2;
 
 function hasChromeStorage(): boolean {
@@ -42,6 +43,10 @@ function readLocalStorage(keys: string[]): Promise<Record<string, unknown>> {
 
 export function isItemNameLinkerEnabled(value: unknown): boolean {
   return typeof value === 'boolean' ? value : true;
+}
+
+export function getItemNameLinkTargetSelector(): string {
+  return ITEM_NAME_LINK_TARGET_SELECTOR;
 }
 
 export function buildItemNameEntries(nameMap: Record<string, unknown>): ItemNameEntry[] {
@@ -158,8 +163,8 @@ function linkTextNode(textNode: Text, entries: ItemNameEntry[]) {
   textNode.replaceWith(fragment);
 }
 
-function applyItemNameLinks(entries: ItemNameEntry[]) {
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+function applyItemNameLinksToTarget(target: Element, entries: ItemNameEntry[]) {
+  const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
   const textNodes: Text[] = [];
 
   while (walker.nextNode()) {
@@ -168,6 +173,16 @@ function applyItemNameLinks(entries: ItemNameEntry[]) {
 
   textNodes.forEach((textNode) => {
     linkTextNode(textNode, entries);
+  });
+}
+
+function getItemNameLinkTargets(): Element[] {
+  return Array.from(document.querySelectorAll(ITEM_NAME_LINK_TARGET_SELECTOR));
+}
+
+function applyItemNameLinks(entries: ItemNameEntry[]) {
+  getItemNameLinkTargets().forEach((target) => {
+    applyItemNameLinksToTarget(target, entries);
   });
 }
 
@@ -215,6 +230,10 @@ async function updateItemNameLinks(entriesPromise: Promise<ItemNameEntry[]>) {
 
 export function initializeItemNameLinker() {
   if (typeof document === 'undefined' || typeof chrome === 'undefined' || !location.hostname.endsWith('ragnarokonline.gungho.jp')) {
+    return;
+  }
+
+  if (getItemNameLinkTargets().length === 0) {
     return;
   }
 

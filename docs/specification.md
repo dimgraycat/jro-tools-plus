@@ -133,7 +133,11 @@ https://rowebtool.gungho.jp/character/{world}/{characterId}
 
 ## 公式ページのアイテム名リンク化
 
-`https://ragnarokonline.gungho.jp/*` 上では、Side Panel の `オプション` で `公式ページのアイテム名リンク化` が有効な場合、本文中のアイテム名を RO 公式ツールのアイテム詳細へリンクします。
+`https://ragnarokonline.gungho.jp/*` 上では、Side Panel の `オプション` で `公式ページのアイテム名リンク化` が有効な場合、ラグ缶系ページのラインナップ内にあるアイテム名を RO 公式ツールのアイテム詳細へリンクします。ラグ缶ページの URL は固定しないため、URL ではなく次の selector が存在するかで対象領域を判定します。
+
+```text
+#block-gungho-content > article > div.article__content > div.lineup-list
+```
 
 アイテム名と item ID の対応表は次の JSON を使用します。
 
@@ -147,7 +151,7 @@ JSON は `{ "item_id": "アイテム名" }` 形式です。リンク先は次の
 https://rotool.gungho.jp/item/{item_id}/
 ```
 
-既存のリンク、フォーム、script/style などの中にあるテキストはリンク化しません。同じアイテム名が複数 ID に存在する場合は、最初に読み込んだ ID を使用します。1 文字のアイテム名は誤リンクを避けるため対象外にします。
+指定 selector の外側、既存のリンク、フォーム、script/style などの中にあるテキストはリンク化しません。同じアイテム名が複数 ID に存在する場合は、最初に読み込んだ ID を使用します。1 文字のアイテム名は誤リンクを避けるため対象外にします。
 
 ### Scraper
 
