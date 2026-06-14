@@ -1,4 +1,4 @@
-// .versionrc.js
+// .versionrc.cjs
 module.exports = {
   bumpFiles: [
     {
