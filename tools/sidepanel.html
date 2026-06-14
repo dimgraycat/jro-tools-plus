@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jRo Tools Plus</title>
+  <link href="./css/style.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="min-h-screen min-w-80">
+    <header class="sticky top-0 z-10 bg-white border-b px-4 py-3">
+      <h1 class="text-lg font-bold">jRoToolsPlus</h1>
+    </header>
+
+    <main id="money" class="p-4 js-pages-money hidden break-words">
+      <div class="mb-4">
+        <h2 class="text-xl font-bold">所持Zeny</h2>
+        <p class="mt-2 text-sm text-gray-600">
+          所持Zenyを「キャラクター情報ページ」から収集します
+        </p>
+      </div>
+
+      <section class="bg-white shadow rounded-lg p-4">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <button id="zeny-crawl-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            取得開始
+          </button>
+          <span id="zeny-crawl-last-updated" class="text-xs text-gray-500"></span>
+        </div>
+
+        <div id="zeny-crawl-status" class="text-sm text-gray-600 mb-3"></div>
+
+        <div class="mb-4 text-sm space-y-2">
+          <span class="block text-gray-700">表示形式:</span>
+          <label class="inline-flex items-center mr-3 cursor-pointer">
+            <input type="radio" name="zenyDisplayMode" value="short" class="mr-1 align-middle" checked> 省略 (G/M/K)
+          </label>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="radio" name="zenyDisplayMode" value="full" class="mr-1 align-middle"> 全桁表示
+          </label>
+        </div>
+
+        <pre id="zeny-crawl-results-output" class="bg-gray-100 p-3 rounded text-sm overflow-x-auto whitespace-pre-wrap"></pre>
+      </section>
+    </main>
+  </div>
+
+  <script src="./js/jro-tools-settings.js"></script>
+  <script src="./js/zeny-characterpage-scraper.js"></script>
+</body>
+</html>

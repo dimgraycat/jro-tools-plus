@@ -7,7 +7,7 @@ jRo Tools Plus は jRO 公式系サイト向けの Chrome Extension です。
 主な役割は次の 2 つです。
 
 - `https://rotool.gungho.jp/*` 上で、モンスター・マップ検索結果のドロップ率表示を補助する
-- 拡張機能 popup から、キャラクター情報ページを起点に所持 Zeny 情報を収集・保存・表示する
+- 拡張機能の Side Panel から、キャラクター情報ページを起点に所持 Zeny 情報を収集・保存・表示する
 
 ## Chrome Extension 設定
 
@@ -15,7 +15,8 @@ Manifest は `public/manifest.json` で管理します。
 
 - Manifest version: `3`
 - 拡張機能名: `jRo Tools Plus`
-- Popup: `tools/index.html`
+- Side Panel: `tools/sidepanel.html`
+- Background service worker: `background/service-worker.js`
 - Content script 対象: `https://rotool.gungho.jp/*`
 - Content script 実行タイミング: `document_end`
 - Content script 出力:
@@ -24,10 +25,11 @@ Manifest は `public/manifest.json` で管理します。
 
 要求権限は次の通りです。
 
-- `storage`: popup 設定・Zeny 収集結果・前回取得日時を `chrome.storage.local` に保存する
+- `sidePanel`: 拡張機能アイコンから Side Panel を開閉する
+- `storage`: Side Panel 設定・Zeny 収集結果・前回取得日時を `chrome.storage.local` に保存する
 - `unlimitedStorage`: Zeny 収集結果の保存容量制限を緩和する
-- `activeTab`: popup から現在のタブ URL を確認する
-- `scripting`: popup から対象タブへ scraper を注入・実行する
+- `activeTab`: Side Panel から現在のタブ URL を確認する
+- `scripting`: Side Panel から対象タブへ scraper を注入・実行する
 
 `web_accessible_resources` では次のリソースを jRO 公式系ドメインから参照可能にします。
 
@@ -67,16 +69,16 @@ Manifest は `public/manifest.json` で管理します。
 | `rate9` | `約75%` |
 | `rate10` | `100%` |
 
-## Popup 画面
+## Side Panel 画面
 
-Popup の HTML は `tools/index.html` です。
+Side Panel の HTML は `tools/sidepanel.html` です。拡張機能アイコンを押すと `background/service-worker.js` が `chrome.sidePanel.open()` で Side Panel を開きます。開いている状態でもう一度拡張機能アイコンを押すと、Chrome 141+ の `chrome.sidePanel.close()` で閉じます。
 
-現在の実用画面は `所持Zeny` です。`オプション` 画面の markup と永続化処理はありますが、ナビゲーション上はコメントアウトされています。
+旧 popup 用の HTML として `tools/index.html` も残していますが、Manifest の `action.default_popup` は使いません。
 
-Popup の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な責務は次の通りです。
+Side Panel の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な責務は次の通りです。
 
-- hash に応じたメニュー・ページ表示切り替え
-- popup 内の toggle 状態の保存・復元
+- hash に応じたページ表示切り替え
+- Side Panel 内の toggle 状態の保存・復元
 - Zeny 表示形式の保存・復元
 - Zeny 収集ボタンの有効・無効状態管理
 - 収集済み Zeny データの表示
@@ -84,7 +86,7 @@ Popup の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な責務�
 
 ## 所持 Zeny 収集
 
-所持 Zeny 収集は popup の `取得開始` ボタンから実行します。
+所持 Zeny 収集は Side Panel の `取得開始` ボタンから実行します。
 
 実行対象 URL は次の形式です。
 
@@ -98,18 +100,18 @@ https://rowebtool.gungho.jp/character/{world}/{characterId}
 ^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$
 ```
 
-対象外ページで popup を開いた場合、収集ボタンは disabled になり、`取得対象外のページです` を表示します。
+対象外ページで Side Panel を開いた場合、収集ボタンは disabled になり、`取得対象外のページです` を表示します。
 
 ### 収集フロー
 
-1. popup が現在の active tab を取得する
+1. Side Panel が現在の active tab を取得する
 2. 対象 URL であれば `tools/js/zeny-characterpage-scraper.js` を対象タブへ注入する
 3. 対象ページ上の `worldchange` form から world option 一覧を取得する
 4. 各 world について `https://rowebtool.gungho.jp/character/{world}/0` を fetch する
 5. キャラクター詳細ページへのリンク一覧を抽出する
 6. 各キャラクター詳細ページを fetch する
 7. キャラクター名と Zeny を抽出する
-8. world ごとに合計 Zeny を集計して popup に表示する
+8. world ごとに合計 Zeny を集計して Side Panel に表示する
 9. 収集結果と前回取得日時を `chrome.storage.local` に保存する
 
 各 fetch 前には 1500ms の待機を入れています。収集完了後は 5 分間のクールダウンを設けます。
@@ -156,7 +158,7 @@ interface CharacterDetail {
 
 ## Zeny 表示形式
 
-Zeny 表示形式は popup の radio button で選択します。
+Zeny 表示形式は Side Panel の radio button で選択します。
 
 - `short`: `G Zeny`、`M Zeny`、`K Zeny` に省略表示する
 - `full`: カンマ区切りの全桁表示にする
@@ -186,12 +188,13 @@ build 出力先は `dist/` です。webpack は次の入力を entry として�
 
 - `content_scripts/scripts/*.ts`
 - `tools/ts/*.ts`
+- `background/ts/*.ts`
 - `tools/js/*.js`
 
 webpack の copy 対象は次の通りです。
 
 - `public/` -> `dist/`
-- `tools/index.html` -> `dist/tools/index.html`
+- `tools/*.html` -> `dist/tools/*.html`
 - `node_modules/@fortawesome/fontawesome-free/webfonts` -> `dist/tools/webfonts`
 
 Tailwind CSS は `tools/css/app.css` から生成します。

@@ -23,6 +23,12 @@ globSync('tools/ts/*.ts', { cwd: __dirname }).forEach((filePath) => {
     entries[entryKey] = `./${filePath}`; // e.g. './tools/ts/*.ts'
 });
 
+globSync('background/ts/*.ts', { cwd: __dirname }).forEach((filePath) => {
+    const name = path.basename(filePath, '.ts');
+    const entryKey = `background/${name}`;
+    entries[entryKey] = `./${filePath}`;
+});
+
 globSync('tools/js/*.js', { cwd: __dirname }).forEach((filePath) => {
     const name = path.basename(filePath, '.js'); // 'jro-tools-settings'
     const entryKey = `tools/js/${name}`;
@@ -91,8 +97,8 @@ const config = {
                     to: '.'
                 },
                 {
-                    from: path.resolve(__dirname, 'tools/index.html'),
-                    to: 'tools/index.html'
+                    from: path.resolve(__dirname, 'tools/*.html'),
+                    to: 'tools/[name][ext]'
                 },
                 {
                     from: path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'),

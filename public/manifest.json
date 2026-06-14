@@ -24,10 +24,18 @@
         }
     ],
     "action": {
-        "default_popup": "tools/index.html",
-        "default_icon": "images/icon-19.png"
+        "default_icon": "images/icon-19.png",
+        "default_title": "jRo Tools Plus を開閉"
+    },
+    "background": {
+        "service_worker": "background/service-worker.js",
+        "type": "module"
+    },
+    "side_panel": {
+        "default_path": "tools/sidepanel.html"
     },
     "permissions": [
+        "sidePanel",
         "storage",
         "unlimitedStorage",
         "activeTab",

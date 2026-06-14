@@ -18,6 +18,7 @@
     ]
   },
   "include": [
+    "background/**/*.ts",
     "content_scripts/**/*.ts",
     "tools/ts/*.ts",
     "webpack.config.ts"
