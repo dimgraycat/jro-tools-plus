@@ -203,7 +203,7 @@ function formatTimestampToYyyyMmDdHhMmSs(timestamp: number): string {
 
 if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
-    const menuItems = document.querySelectorAll('aside nav ul li[class*="js-menu-"]');
+    const menuItems = document.querySelectorAll('nav ul li[class*="js-menu-"]');
     const pageElements = document.querySelectorAll('main[class*="js-pages-"]');
     const featureToggles: HTMLInputElement[] = [
         document.getElementById('toggle-feature-a'),
@@ -221,15 +221,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!link) return;
             const linkHref = link.getAttribute('href');
 
-            li.classList.remove('bg-gray-100', 'border-blue-500');
+            li.classList.remove('bg-gray-100', 'border-blue-500', 'border-white', 'border-transparent');
             link.classList.remove('text-blue-600', 'font-semibold');
-            li.classList.add('border-white');
+            li.classList.add('border-transparent');
             link.classList.add('text-gray-700');
 
             if (linkHref === currentHash) {
                 li.classList.add('bg-gray-100', 'border-blue-500');
                 link.classList.add('text-blue-600', 'font-semibold');
-                li.classList.remove('border-white');
+                li.classList.remove('border-white', 'border-transparent');
                 link.classList.remove('text-gray-700');
             }
         });

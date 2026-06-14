@@ -76,6 +76,11 @@ Host permissions は次の通りです。
 
 Side Panel の HTML は `tools/sidepanel.html` です。拡張機能アイコンを押すと `background/service-worker.js` が `chrome.sidePanel.open()` で Side Panel を開きます。開いている状態でもう一度拡張機能アイコンを押すと、Chrome 141+ の `chrome.sidePanel.close()` で閉じます。
 
+Side Panel のヘッダーにはページ切り替えメニューを表示します。
+
+- `所持Zeny`: 所持 Zeny 収集画面
+- `オプション`: toggle 設定画面
+
 旧 popup 用の HTML として `tools/index.html` も残していますが、Manifest の `action.default_popup` は使いません。
 
 Side Panel の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な責務は次の通りです。
