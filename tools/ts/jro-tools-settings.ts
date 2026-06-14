@@ -205,11 +205,7 @@ if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
     const menuItems = document.querySelectorAll('nav ul li[class*="js-menu-"]');
     const pageElements = document.querySelectorAll('main[class*="js-pages-"]');
-    const featureToggles: HTMLInputElement[] = [
-        document.getElementById('toggle-feature-a'),
-        document.getElementById('toggle-feature-b'),
-        document.getElementById('toggle-feature-c')
-    ].filter(toggle => toggle !== null) as HTMLInputElement[];
+    const featureToggles = Array.from(document.querySelectorAll<HTMLInputElement>('input[data-storage-toggle]'));
 
     function updateActiveState() {
         const currentHash = window.location.hash;
@@ -276,8 +272,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             featureToggles.forEach(toggle => { // toggle is HTMLInputElement here
-                if (toggle && result[toggle.id] !== undefined) {
-                    toggle.checked = result[toggle.id];
+                if (result[toggle.id] !== undefined) {
+                    toggle.checked = Boolean(result[toggle.id]);
+                    return;
+                }
+
+                if (toggle.dataset.defaultChecked === 'true') {
+                    toggle.checked = true;
                 }
             });
         });

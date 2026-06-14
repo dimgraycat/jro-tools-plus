@@ -10,6 +10,7 @@
   },
   "include": [
     "tests/**/*.ts",
+    "content_scripts/lib/item-name-linker.ts",
     "tools/ts/jro-tools-settings.ts"
   ]
 }
