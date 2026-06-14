@@ -216,6 +216,7 @@ mise exec -- npm run bump
 
 ```sh
 mise exec -- npm ci
+mise exec -- npm test
 mise exec -- npm audit --audit-level=low
 mise exec -- npm run build
 ```

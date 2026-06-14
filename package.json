@@ -42,6 +42,7 @@
     "build:dev": "npm run clean && npm-run-all -p watch:css watch:js",
     "watch:css": "npx tailwindcss -i ./tools/css/app.css -o ./tools/css/style.css --watch",
     "watch:js": "cross-env NODE_ENV=development webpack --watch",
+    "test": "rm -rf .test-build && tsc --project tsconfig.test.json && node --test .test-build/tests/*.test.js",
     "build:css:prod": "tailwindcss -i ./tools/css/app.css -o ./dist/tools/css/style.css --minify",
     "release": "standard-version",
     "bump": "npm run release -- --release-as patch",

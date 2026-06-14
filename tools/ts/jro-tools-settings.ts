@@ -1,25 +1,25 @@
-interface WorldInfo { // zeny-characterpage-scraper.ts と同じ定義
+export interface WorldInfo { // zeny-characterpage-scraper.ts と同じ定義
   value: string;
   text: string;
 }
 
 // zeny-characterpage-scraper.ts と同じ定義
-interface CharacterPageLink extends WorldInfo {
+export interface CharacterPageLink extends WorldInfo {
   href: string;
 }
 
-interface CharacterDetail extends CharacterPageLink {
+export interface CharacterDetail extends CharacterPageLink {
   characterName?: string;
   zeny?: string;
 }
 
-interface WorldZenySummary {
+export interface WorldZenySummary {
     worldText: string;
     characters: CharacterDetail[];
     totalZeny: number;
 }
 
-type ZenyDisplayPreference = 'full' | 'short';
+export type ZenyDisplayPreference = 'full' | 'short';
 
 const DEFAULT_ZENY_DISPLAY_PREFERENCE: ZenyDisplayPreference = 'full';
 const ZENY_TARGET_URL_PATTERN = /^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$/;
@@ -78,7 +78,7 @@ function writeLocalStorage(values: Record<string, unknown>, context: string): Pr
     });
 }
 
-function isZenyDisplayPreference(value: unknown): value is ZenyDisplayPreference {
+export function isZenyDisplayPreference(value: unknown): value is ZenyDisplayPreference {
     return value === 'full' || value === 'short';
 }
 
@@ -91,12 +91,12 @@ function escapeHtml(value: string): string {
         .replace(/'/g, '&#039;');
 }
 
-function parseZenyAmount(zeny: string | undefined): number | null {
+export function parseZenyAmount(zeny: string | undefined): number | null {
     const amount = parseInt((zeny || '0').replace(/,/g, '').replace(/\s*Zeny/i, ''), 10);
     return Number.isNaN(amount) ? null : amount;
 }
 
-function formatShortZeny(zeny: number): string {
+export function formatShortZeny(zeny: number): string {
     if (!Number.isFinite(zeny)) return 'N/A';
     if (zeny >= 1_000_000_000) return `${Math.floor(zeny / 1_000_000_000)}G Zeny`;
     if (zeny >= 1_000_000) return `${Math.floor(zeny / 1_000_000)}M Zeny`;
@@ -104,12 +104,12 @@ function formatShortZeny(zeny: number): string {
     return `${zeny.toLocaleString()} Zeny`;
 }
 
-function formatActualZeny(zeny: number): string {
+export function formatActualZeny(zeny: number): string {
     if (!Number.isFinite(zeny)) return 'N/A';
     return `${zeny.toLocaleString()} Zeny`;
 }
 
-function formatZenyForDisplay(zeny: number, preference: ZenyDisplayPreference): string {
+export function formatZenyForDisplay(zeny: number, preference: ZenyDisplayPreference): string {
     if (preference === 'full') {
         return formatActualZeny(zeny);
     }
@@ -117,7 +117,7 @@ function formatZenyForDisplay(zeny: number, preference: ZenyDisplayPreference): 
     return `<span class="${ZENY_VALUE_CLASS_NAME}" tabindex="0" data-actual-zeny="${zeny}">${formatShortZeny(zeny)}</span>`;
 }
 
-function groupCharacterDetailsByWorld(details: CharacterDetail[]): Record<string, WorldZenySummary> {
+export function groupCharacterDetailsByWorld(details: CharacterDetail[]): Record<string, WorldZenySummary> {
     return details.reduce<Record<string, WorldZenySummary>>((worlds, character) => {
         if (!worlds[character.value]) {
             worlds[character.value] = {
@@ -146,7 +146,7 @@ function renderCharacterZeny(character: CharacterDetail, preference: ZenyDisplay
     return formatZenyForDisplay(amount, preference);
 }
 
-function formatCharacterDetailsToHtml(details: CharacterDetail[], preference: ZenyDisplayPreference): string {
+export function formatCharacterDetailsToHtml(details: CharacterDetail[], preference: ZenyDisplayPreference): string {
     if (!details || details.length === 0) {
         return '<p class="text-gray-500">データがありません</p>';
     }
@@ -186,6 +186,7 @@ function formatTimestampToYyyyMmDdHhMmSs(timestamp: number): string {
   return `${YYYY}/${MM}/${DD} ${HH}:${mm}:${ss}`;
 }
 
+if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
     const menuItems = document.querySelectorAll('aside nav ul li[class*="js-menu-"]');
     const pageElements = document.querySelectorAll('main[class*="js-pages-"]');
@@ -625,5 +626,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeZenyCrawlFeatureState(); // ボタン状態などの初期設定
     loadZenyDisplayPreference(); // 表示設定を読み込み、それに基づいて結果を表示
 });
+}
 
 export {};
