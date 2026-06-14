@@ -619,7 +619,6 @@ document.addEventListener('DOMContentLoaded', () => {
             checkCooldown(now);
         } catch (error: any) {
             if (isZenyCrawlInterruptedError(error)) {
-                console.warn('Zeny情報取得を中断しました:', error.message);
                 shouldRefreshAfterCrawl = false;
                 suppressNextZenyTargetStateRefresh = true;
                 setZenyStatus(error.message, 'text-yellow-600');
