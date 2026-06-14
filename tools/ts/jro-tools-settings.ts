@@ -36,6 +36,21 @@ const STORAGE_KEYS = {
 
 let currentZenyDisplayPreference: ZenyDisplayPreference = DEFAULT_ZENY_DISPLAY_PREFERENCE;
 
+export function isZenyTargetUrl(url: string | undefined): boolean {
+    return typeof url === 'string' && ZENY_TARGET_URL_PATTERN.test(url);
+}
+
+class ZenyCrawlInterruptedError extends Error {
+    constructor(message = '取得中に対象タブが閉じられたため中断しました') {
+        super(message);
+        this.name = 'ZenyCrawlInterruptedError';
+    }
+}
+
+function isZenyCrawlInterruptedError(error: unknown): error is ZenyCrawlInterruptedError {
+    return error instanceof ZenyCrawlInterruptedError;
+}
+
 function hasChromeStorage(): boolean {
     return typeof chrome !== 'undefined' && !!chrome.storage?.local;
 }
@@ -302,6 +317,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const zenyDisplayModeRadios = document.querySelectorAll<HTMLInputElement>('input[name="zenyDisplayMode"]');
 
     let cooldownIntervalId: number | null = null;
+    let activeZenyCrawlTabId: number | null = null;
+    let activeZenyCrawlTabWasClosed = false;
+    let suppressNextZenyTargetStateRefresh = false;
 
     function setZenyButtonEnabled(isEnabled: boolean) {
         if (!zenyCrawlButton) return;
@@ -332,13 +350,32 @@ document.addEventListener('DOMContentLoaded', () => {
         zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(timestamp)}`;
     }
 
+    function clearCooldownTimer() {
+        if (cooldownIntervalId) {
+            clearInterval(cooldownIntervalId);
+            cooldownIntervalId = null;
+        }
+    }
+
+    function resetZenyReadyState() {
+        clearCooldownTimer();
+        setZenyButtonEnabled(true);
+        setZenyStatus('再実行可能です');
+        if (zenyCrawlLastUpdated) {
+            zenyCrawlLastUpdated.textContent = '';
+        }
+    }
+
     async function loadLastUpdatedTimestamp() {
         const result = await readLocalStorage([STORAGE_KEYS.zenyCrawlLastUpdated]);
         const timestamp = result[STORAGE_KEYS.zenyCrawlLastUpdated];
         if (typeof timestamp === 'number') {
             updateLastUpdatedText(timestamp);
             checkCooldown(timestamp);
+            return;
         }
+
+        resetZenyReadyState();
     }
 
     async function loadStoredCrawlResults() {
@@ -413,10 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             setZenyButtonEnabled(true);
             setZenyStatus('再実行可能です');
-            if (cooldownIntervalId) {
-                clearInterval(cooldownIntervalId);
-                cooldownIntervalId = null;
-            }
+            clearCooldownTimer();
         }
     }
 
@@ -424,6 +458,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return url.length > 60
             ? `${url.substring(0, 30)}...${url.substring(url.length - 25)}`
             : url;
+    }
+
+    async function getActiveBrowserTab(): Promise<chrome.tabs.Tab | null> {
+        const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        return activeTab ?? null;
+    }
+
+    function isActiveZenyCrawlTabClosed(tabId: number): boolean {
+        return activeZenyCrawlTabId === tabId && activeZenyCrawlTabWasClosed;
+    }
+
+    function isClosedTabExecutionError(error: unknown): boolean {
+        if (!(error instanceof Error)) {
+            return false;
+        }
+
+        return /No tab with id|Frame with ID .* was removed|tab was closed|Cannot access/i.test(error.message);
+    }
+
+    function toZenyCrawlExecutionError(tabId: number, error: unknown): Error {
+        if (isActiveZenyCrawlTabClosed(tabId) || isClosedTabExecutionError(error)) {
+            return new ZenyCrawlInterruptedError();
+        }
+
+        return error instanceof Error ? error : new Error(String(error));
     }
 
     async function executeActiveTabScript<TArgs extends unknown[], TResult>(
@@ -435,6 +494,8 @@ document.addEventListener('DOMContentLoaded', () => {
             target: { tabId },
             func,
             args,
+        }).catch((error) => {
+            throw toZenyCrawlExecutionError(tabId, error);
         });
 
         return (result?.result ?? null) as TResult | null;
@@ -444,6 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
         await chrome.scripting.executeScript({
             target: { tabId },
             files: [ZENY_SCRAPER_FILE],
+        }).catch((error) => {
+            throw toZenyCrawlExecutionError(tabId, error);
         });
     }
 
@@ -475,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function collectCharacterDetails(tabId: number): Promise<CharacterDetail[] | null> {
-        setZenyStatus('対象ページでワールドリストを取得中...');
+        setZenyStatus('対象ページでワールドリストを取得中... 完了まで対象タブを閉じないでください', 'text-yellow-600');
         await injectZenyScraper(tabId);
 
         const worldOptions = await fetchWorldOptions(tabId);
@@ -491,12 +554,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const allCharacterDetails: CharacterDetail[] = [];
         for (const world of worldOptions) {
-            setZenyStatus(`${world.text} のキャラクターURLリストを収集中...`);
+            setZenyStatus(`${world.text} のキャラクターURLリストを収集中... 対象タブを閉じないでください`, 'text-yellow-600');
             const characterPageLinks = await fetchCharacterPageLinks(tabId, world);
             if (!characterPageLinks) continue;
 
             for (const pageLink of characterPageLinks) {
-                setZenyStatus(`${pageLink.text} - ${formatStatusUrl(pageLink.href)} から取得中...`);
+                setZenyStatus(`${pageLink.text} - ${formatStatusUrl(pageLink.href)} から取得中... 対象タブを閉じないでください`, 'text-yellow-600');
                 const detail = await fetchCharacterDetail(tabId, pageLink);
                 allCharacterDetails.push(detail ?? { ...pageLink, characterName: '取得失敗', zeny: '取得失敗' });
             }
@@ -518,19 +581,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!zenyCrawlButton || !zenyCrawlResultsOutput) return;
         if (zenyCrawlButton.disabled) return;
 
-        setZenyStatus('情報収集中...');
+        let shouldRefreshAfterCrawl = true;
+        setZenyStatus('情報収集中... 完了まで対象タブを閉じないでください', 'text-yellow-600');
         setZenyButtonEnabled(false);
         zenyCrawlResultsOutput.textContent = '';
 
         try {
-            const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (!activeTab?.id || !activeTab.url || !ZENY_TARGET_URL_PATTERN.test(activeTab.url)) {
+            const activeTab = await getActiveBrowserTab();
+            if (!activeTab?.id || !isZenyTargetUrl(activeTab.url)) {
                 setZenyStatus('アクティブなタブがキャラクター情報ページではありません', 'text-red-500');
                 zenyCrawlResultsOutput.textContent = activeTab?.url
                     ? `現在のURL: ${activeTab.url}`
                     : 'アクティブなタブが見つからないか、URLがありません';
                 return;
             }
+
+            activeZenyCrawlTabId = activeTab.id;
+            activeZenyCrawlTabWasClosed = false;
 
             const allCharacterDetails = await collectCharacterDetails(activeTab.id);
             if (allCharacterDetails === null) {
@@ -551,9 +618,24 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLastUpdatedText(now);
             checkCooldown(now);
         } catch (error: any) {
+            if (isZenyCrawlInterruptedError(error)) {
+                console.warn('Zeny情報取得を中断しました:', error.message);
+                shouldRefreshAfterCrawl = false;
+                suppressNextZenyTargetStateRefresh = true;
+                setZenyStatus(error.message, 'text-yellow-600');
+                zenyCrawlResultsOutput.textContent = '取得中に対象ページのタブが閉じられたため、収集を中断しました。';
+                return;
+            }
+
             console.error('Zeny情報取得に失敗しました:', error);
             setZenyStatus(`エラー: ${error.message}`, 'text-red-500');
             zenyCrawlResultsOutput.textContent = '処理中にエラーが発生しました。コンソールで詳細を確認してください。';
+        } finally {
+            activeZenyCrawlTabId = null;
+            activeZenyCrawlTabWasClosed = false;
+            if (shouldRefreshAfterCrawl) {
+                scheduleZenyTargetStateRefresh();
+            }
         }
     }
 
@@ -602,11 +684,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            const activeTab = await getActiveBrowserTab();
 
-            if (activeTab && activeTab.url && ZENY_TARGET_URL_PATTERN.test(activeTab.url)) {
+            if (isZenyTargetUrl(activeTab?.url)) {
                 loadLastUpdatedTimestamp();
             } else {
+                clearCooldownTimer();
                 setZenyButtonEnabled(false);
                 setZenyStatus('取得対象外のページです', 'text-yellow-600');
 
@@ -623,7 +706,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let zenyTargetStateRefreshTimer: number | null = null;
+
+    function scheduleZenyTargetStateRefresh() {
+        if (activeZenyCrawlTabId !== null) {
+            return;
+        }
+
+        if (suppressNextZenyTargetStateRefresh) {
+            suppressNextZenyTargetStateRefresh = false;
+            return;
+        }
+
+        if (zenyTargetStateRefreshTimer !== null) {
+            clearTimeout(zenyTargetStateRefreshTimer);
+        }
+
+        zenyTargetStateRefreshTimer = window.setTimeout(() => {
+            zenyTargetStateRefreshTimer = null;
+            void initializeZenyCrawlFeatureState();
+        }, 100);
+    }
+
+    function watchActiveTabForZenyTargetChanges() {
+        chrome.tabs.onActivated.addListener(() => {
+            scheduleZenyTargetStateRefresh();
+        });
+
+        chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+            if (tab.active && (changeInfo.url || changeInfo.status === 'complete')) {
+                scheduleZenyTargetStateRefresh();
+            }
+        });
+
+        chrome.tabs.onRemoved.addListener((tabId) => {
+            if (activeZenyCrawlTabId === tabId) {
+                activeZenyCrawlTabWasClosed = true;
+            }
+
+            scheduleZenyTargetStateRefresh();
+        });
+
+        chrome.windows.onFocusChanged.addListener((windowId) => {
+            if (windowId !== chrome.windows.WINDOW_ID_NONE) {
+                scheduleZenyTargetStateRefresh();
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                scheduleZenyTargetStateRefresh();
+            }
+        });
+    }
+
     initializeZenyCrawlFeatureState(); // ボタン状態などの初期設定
+    watchActiveTabForZenyTargetChanges();
     loadZenyDisplayPreference(); // 表示設定を読み込み、それに基づいて結果を表示
 });
 }

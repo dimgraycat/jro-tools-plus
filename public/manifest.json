@@ -38,8 +38,10 @@
         "sidePanel",
         "storage",
         "unlimitedStorage",
-        "activeTab",
         "scripting"
+    ],
+    "host_permissions": [
+        "https://rowebtool.gungho.jp/*"
     ],
     "web_accessible_resources": [
         {

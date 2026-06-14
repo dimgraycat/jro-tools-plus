@@ -28,8 +28,11 @@ Manifest は `public/manifest.json` で管理します。
 - `sidePanel`: 拡張機能アイコンから Side Panel を開閉する
 - `storage`: Side Panel 設定・Zeny 収集結果・前回取得日時を `chrome.storage.local` に保存する
 - `unlimitedStorage`: Zeny 収集結果の保存容量制限を緩和する
-- `activeTab`: Side Panel から現在のタブ URL を確認する
 - `scripting`: Side Panel から対象タブへ scraper を注入・実行する
+
+Host permissions は次の通りです。
+
+- `https://rowebtool.gungho.jp/*`: Side Panel を先に開いた後でキャラクター情報ページへ切り替えた場合でも、対象タブの URL 判定と scraper 注入を実行する
 
 `web_accessible_resources` では次のリソースを jRO 公式系ドメインから参照可能にします。
 
@@ -81,6 +84,7 @@ Side Panel の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な�
 - Side Panel 内の toggle 状態の保存・復元
 - Zeny 表示形式の保存・復元
 - Zeny 収集ボタンの有効・無効状態管理
+- active tab の切り替え・URL 変更に応じた対象ページ再判定
 - 収集済み Zeny データの表示
 - 対象タブへの scraper 注入と実行
 
@@ -104,7 +108,7 @@ https://rowebtool.gungho.jp/character/{world}/{characterId}
 
 ### 収集フロー
 
-1. Side Panel が現在の active tab を取得する
+1. Side Panel が最後にフォーカスされたブラウザウィンドウの active tab を取得する
 2. 対象 URL であれば `tools/js/zeny-characterpage-scraper.js` を対象タブへ注入する
 3. 対象ページ上の `worldchange` form から world option 一覧を取得する
 4. 各 world について `https://rowebtool.gungho.jp/character/{world}/0` を fetch する
@@ -115,6 +119,8 @@ https://rowebtool.gungho.jp/character/{world}/{characterId}
 9. 収集結果と前回取得日時を `chrome.storage.local` に保存する
 
 各 fetch 前には 1500ms の待機を入れています。収集完了後は 5 分間のクールダウンを設けます。
+
+収集中は Side Panel のステータスに、完了まで対象タブを閉じないよう警告を表示します。収集中に対象タブが閉じられた場合は収集を中断し、保存済みの Zeny 収集結果は上書きしません。
 
 ### Scraper
 

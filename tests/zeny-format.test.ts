@@ -9,6 +9,7 @@ import {
   formatZenyForDisplay,
   groupCharacterDetailsByWorld,
   isZenyDisplayPreference,
+  isZenyTargetUrl,
   parseZenyAmount,
 } from '../tools/ts/jro-tools-settings.js';
 
@@ -18,6 +19,17 @@ describe('Zeny display preference', () => {
     assert.equal(isZenyDisplayPreference('short'), true);
     assert.equal(isZenyDisplayPreference('compact'), false);
     assert.equal(isZenyDisplayPreference(undefined), false);
+  });
+});
+
+describe('Zeny target page detection', () => {
+  it('matches only rowebtool character detail pages', () => {
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01/123456'), true);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01/0'), true);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01'), false);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01/123456?x=1'), false);
+    assert.equal(isZenyTargetUrl('https://rotool.gungho.jp/character/world01/123456'), false);
+    assert.equal(isZenyTargetUrl(undefined), false);
   });
 });
 
