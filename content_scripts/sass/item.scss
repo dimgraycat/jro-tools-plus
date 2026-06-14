@@ -8,3 +8,13 @@
 .jro-tools-plus-item-link:hover {
     color: #004f8a;
 }
+
+.jro-tools-plus-item-link::after {
+    content: "\f08e";
+    display: inline-block;
+    font-family: "Font Awesome 6 Free";
+    font-size: 0.8em;
+    font-weight: 900;
+    margin-left: 0.25em;
+    text-decoration: none;
+}
