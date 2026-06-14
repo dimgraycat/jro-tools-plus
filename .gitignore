@@ -7,3 +7,7 @@ yarn-error.log
 
 dist/
 packages/
+
+# Local Codex handoff notes. This is an autonomous Markdown workspace and must
+# not be committed.
+/tmp/session-handoff/
