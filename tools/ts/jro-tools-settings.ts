@@ -13,29 +13,165 @@ interface CharacterDetail extends CharacterPageLink {
   zeny?: string;
 }
 
-// Zeny表示設定のストレージキー
-const ZENY_DISPLAY_PREFERENCE_KEY = 'zenyDisplayPreference';
-let currentZenyDisplayPreference = 'full'; // デフォルトは全桁表示
-
-// --- Zeny Formatting Helpers ---
-// 数値をG (Giga) / M (Mega) 単位またはカンマ区切りでフォーマット (小数点3桁)
-function formatZenyForDisplay(zeny: number): string {
-  if (isNaN(zeny) || zeny === null || typeof zeny === 'undefined') return "N/A";
-  if (zeny >= 1_000_000_000) {
-    return Math.floor(zeny / 1_000_000_000) + "G Zeny";
-  } else if (zeny >= 1_000_000) {
-    return Math.floor(zeny / 1_000_000) + "M Zeny";
-  } else if (zeny >= 1_000) {
-    return Math.floor(zeny / 1_000) + "K Zeny";
-  } else {
-    return zeny.toLocaleString() + " Zeny";
-  }
+interface WorldZenySummary {
+    worldText: string;
+    characters: CharacterDetail[];
+    totalZeny: number;
 }
 
-// 数値をカンマ区切りでフォーマット (実際のZeny表示用)
+type ZenyDisplayPreference = 'full' | 'short';
+
+const DEFAULT_ZENY_DISPLAY_PREFERENCE: ZenyDisplayPreference = 'full';
+const ZENY_TARGET_URL_PATTERN = /^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$/;
+const ZENY_SCRAPER_FILE = '/tools/js/zeny-characterpage-scraper.js';
+const ZENY_COOLDOWN_DURATION_MS = 5 * 60 * 1000;
+const ZENY_VALUE_CLASS_NAME = 'zeny-value';
+const ZENY_BUTTON_ENABLED_CLASSES = ['bg-blue-500', 'hover:bg-blue-700'];
+const ZENY_BUTTON_DISABLED_CLASSES = ['opacity-50', 'cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400'];
+const STORAGE_KEYS = {
+    zenyDisplayPreference: 'zenyDisplayPreference',
+    zenyCrawlLastUpdated: 'zenyCrawlLastUpdatedTimestamp',
+    zenyCrawlResults: 'zenyCrawlResultsData',
+} as const;
+
+let currentZenyDisplayPreference: ZenyDisplayPreference = DEFAULT_ZENY_DISPLAY_PREFERENCE;
+
+function hasChromeStorage(): boolean {
+    return typeof chrome !== 'undefined' && !!chrome.storage?.local;
+}
+
+function getChromeLastErrorMessage(): string | undefined {
+    return chrome.runtime.lastError?.message;
+}
+
+function readLocalStorage(keys: string[]): Promise<Record<string, unknown>> {
+    if (!hasChromeStorage()) {
+        return Promise.resolve({});
+    }
+
+    return new Promise((resolve) => {
+        chrome.storage.local.get(keys, (result) => {
+            const errorMessage = getChromeLastErrorMessage();
+            if (errorMessage) {
+                console.error('Error loading local storage:', errorMessage);
+                resolve({});
+                return;
+            }
+            resolve(result);
+        });
+    });
+}
+
+function writeLocalStorage(values: Record<string, unknown>, context: string): Promise<void> {
+    if (!hasChromeStorage()) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        chrome.storage.local.set(values, () => {
+            const errorMessage = getChromeLastErrorMessage();
+            if (errorMessage) {
+                console.error(`Error saving ${context}:`, errorMessage);
+            }
+            resolve();
+        });
+    });
+}
+
+function isZenyDisplayPreference(value: unknown): value is ZenyDisplayPreference {
+    return value === 'full' || value === 'short';
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function parseZenyAmount(zeny: string | undefined): number | null {
+    const amount = parseInt((zeny || '0').replace(/,/g, '').replace(/\s*Zeny/i, ''), 10);
+    return Number.isNaN(amount) ? null : amount;
+}
+
+function formatShortZeny(zeny: number): string {
+    if (!Number.isFinite(zeny)) return 'N/A';
+    if (zeny >= 1_000_000_000) return `${Math.floor(zeny / 1_000_000_000)}G Zeny`;
+    if (zeny >= 1_000_000) return `${Math.floor(zeny / 1_000_000)}M Zeny`;
+    if (zeny >= 1_000) return `${Math.floor(zeny / 1_000)}K Zeny`;
+    return `${zeny.toLocaleString()} Zeny`;
+}
+
 function formatActualZeny(zeny: number): string {
-  if (isNaN(zeny) || zeny === null || typeof zeny === 'undefined') return "N/A";
-  return zeny.toLocaleString() + " Zeny";
+    if (!Number.isFinite(zeny)) return 'N/A';
+    return `${zeny.toLocaleString()} Zeny`;
+}
+
+function formatZenyForDisplay(zeny: number, preference: ZenyDisplayPreference): string {
+    if (preference === 'full') {
+        return formatActualZeny(zeny);
+    }
+
+    return `<span class="${ZENY_VALUE_CLASS_NAME}" tabindex="0" data-actual-zeny="${zeny}">${formatShortZeny(zeny)}</span>`;
+}
+
+function groupCharacterDetailsByWorld(details: CharacterDetail[]): Record<string, WorldZenySummary> {
+    return details.reduce<Record<string, WorldZenySummary>>((worlds, character) => {
+        if (!worlds[character.value]) {
+            worlds[character.value] = {
+                worldText: character.text,
+                characters: [],
+                totalZeny: 0,
+            };
+        }
+
+        worlds[character.value].characters.push(character);
+        const zenyAmount = parseZenyAmount(character.zeny);
+        if (zenyAmount !== null) {
+            worlds[character.value].totalZeny += zenyAmount;
+        }
+
+        return worlds;
+    }, {});
+}
+
+function renderCharacterZeny(character: CharacterDetail, preference: ZenyDisplayPreference): string {
+    const amount = parseZenyAmount(character.zeny);
+    if (amount === null) {
+        return escapeHtml(character.zeny || 'Zeny不明');
+    }
+
+    return formatZenyForDisplay(amount, preference);
+}
+
+function formatCharacterDetailsToHtml(details: CharacterDetail[], preference: ZenyDisplayPreference): string {
+    if (!details || details.length === 0) {
+        return '<p class="text-gray-500">データがありません</p>';
+    }
+
+    const worldsData = groupCharacterDetailsByWorld(details);
+    const worldsHtml = Object.keys(worldsData).map((worldValue) => {
+        const world = worldsData[worldValue];
+        const totalZenyDisplay = formatZenyForDisplay(world.totalZeny, preference);
+        const charactersHtml = world.characters.map((character) => {
+            const characterName = escapeHtml(character.characterName || '不明なキャラクター');
+            const characterZeny = renderCharacterZeny(character, preference);
+            return `<li>${characterName} (${characterZeny})</li>`;
+        }).join('');
+
+        return [
+            '<div class="p-3 bg-gray-50 rounded-md shadow-sm">',
+            `<h3 class="text-lg font-semibold text-blue-800">${escapeHtml(world.worldText)} (合計: ${totalZenyDisplay})</h3>`,
+            '<ul class="list-disc list-inside ml-4 mt-2 space-y-1 text-sm">',
+            charactersHtml,
+            '</ul>',
+            '</div>',
+        ].join('');
+    }).join('');
+
+    return `<div class="space-y-4">${worldsHtml}</div>`;
 }
 
 // --- Date Formatting Helper ---
@@ -157,183 +293,116 @@ document.addEventListener('DOMContentLoaded', () => {
     initialize();
     loadToggleSettings();
 
-    // Zeny表示形式ラジオボタンの処理
-    const zenyDisplayModeRadios = document.querySelectorAll<HTMLInputElement>('input[name="zenyDisplayMode"]');
-
-    function applyZenyDisplayPreferenceAndRender() {
-        // 保存された収集結果を現在の表示設定で再表示
-        loadStoredCrawlResults();
-    }
-
-    function loadZenyDisplayPreference() {
-        if (chrome.storage && chrome.storage.local) {
-            chrome.storage.local.get([ZENY_DISPLAY_PREFERENCE_KEY], (result) => {
-                if (chrome.runtime.lastError) {
-                    console.error("Error loading Zeny display preference:", chrome.runtime.lastError.message);
-                } else {
-                    currentZenyDisplayPreference = result[ZENY_DISPLAY_PREFERENCE_KEY] || 'full'; // ストレージに設定がなければ全桁表示
-                }
-                zenyDisplayModeRadios.forEach(radio => {
-                    radio.checked = (radio.value === currentZenyDisplayPreference);
-                });
-                applyZenyDisplayPreferenceAndRender(); // 設定を読み込んだ後に表示を更新
-            });
-        } else {
-            // ストレージが利用できない場合はデフォルト設定で表示
-            zenyDisplayModeRadios.forEach(radio => { radio.checked = (radio.value === currentZenyDisplayPreference); });
-            applyZenyDisplayPreferenceAndRender();
-        }
-    }
-
-    zenyDisplayModeRadios.forEach(radio => {
-        radio.addEventListener('change', (event) => {
-            currentZenyDisplayPreference = (event.target as HTMLInputElement).value;
-            if (chrome.storage && chrome.storage.local) {
-                chrome.storage.local.set({ [ZENY_DISPLAY_PREFERENCE_KEY]: currentZenyDisplayPreference }, () => {
-                    if (chrome.runtime.lastError) console.error("Error saving Zeny display preference:", chrome.runtime.lastError.message);
-                    applyZenyDisplayPreferenceAndRender(); // 設定変更後に表示を更新
-                });
-            } else {
-                applyZenyDisplayPreferenceAndRender(); // ストレージがなくてもUI上は更新
-            }
-        });
-    });
-
     // --- 所持Zeny情報収集機能 ---
     const zenyCrawlButton = document.getElementById('zeny-crawl-button') as HTMLButtonElement | null;
     const zenyCrawlStatus = document.getElementById('zeny-crawl-status') as HTMLElement | null;
     const zenyCrawlResultsOutput = document.getElementById('zeny-crawl-results-output') as HTMLElement | null;
-    const zenyCrawlLastUpdated = document.getElementById('zeny-crawl-last-updated') as HTMLElement | null; // 前回取得日時表示用
+    const zenyCrawlLastUpdated = document.getElementById('zeny-crawl-last-updated') as HTMLElement | null;
+    const zenyDisplayModeRadios = document.querySelectorAll<HTMLInputElement>('input[name="zenyDisplayMode"]');
 
-    const targetUrlPattern = /^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$/;
+    let cooldownIntervalId: number | null = null;
 
-    const ZenyCrawlLastUpdatedStorageKey = 'zenyCrawlLastUpdatedTimestamp';
-    const ZenyCrawlResultsStorageKey = 'zenyCrawlResultsData'; // 収集結果保存用キー
-    const COOLDOWN_DURATION_MS = 5 * 60 * 1000; // 5分間のクールダウン
+    function setZenyButtonEnabled(isEnabled: boolean) {
+        if (!zenyCrawlButton) return;
 
-    // 前回更新日時を読み込んで表示する関数
-    function loadLastUpdatedTimestamp() {
-        if (zenyCrawlLastUpdated && chrome.storage && chrome.storage.local) {
-            chrome.storage.local.get([ZenyCrawlLastUpdatedStorageKey], (result) => {
-                if (chrome.runtime.lastError) {
-                    console.error("Error loading last updated timestamp:", chrome.runtime.lastError.message);
-                    return;
-                }
-                const timestamp = result[ZenyCrawlLastUpdatedStorageKey];
-                if (timestamp && typeof timestamp === 'number') {
-                    zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(timestamp)}`;
-                    checkCooldown(timestamp); // クールダウン状態も確認
-                }
-            });
+        zenyCrawlButton.disabled = !isEnabled;
+        if (isEnabled) {
+            zenyCrawlButton.classList.remove(...ZENY_BUTTON_DISABLED_CLASSES);
+            zenyCrawlButton.classList.add(...ZENY_BUTTON_ENABLED_CLASSES);
+            return;
+        }
+
+        zenyCrawlButton.classList.add(...ZENY_BUTTON_DISABLED_CLASSES);
+        zenyCrawlButton.classList.remove(...ZENY_BUTTON_ENABLED_CLASSES);
+    }
+
+    function setZenyStatus(message: string, stateClass?: 'text-red-500' | 'text-yellow-600' | 'text-green-500') {
+        if (!zenyCrawlStatus) return;
+
+        zenyCrawlStatus.textContent = message;
+        zenyCrawlStatus.classList.remove('text-red-500', 'text-green-500', 'text-yellow-600');
+        if (stateClass) {
+            zenyCrawlStatus.classList.add(stateClass);
         }
     }
 
-    // 保存された収集結果を読み込んで表示する関数
-    function loadStoredCrawlResults() {
-        if (zenyCrawlResultsOutput && chrome.storage && chrome.storage.local) {
-            chrome.storage.local.get([ZenyCrawlResultsStorageKey], (result) => {
-                if (chrome.runtime.lastError) {
-                    console.error("Error loading stored crawl results:", chrome.runtime.lastError.message);
-                    return;
-                }
-                const storedData = result[ZenyCrawlResultsStorageKey];
-                if (storedData && Array.isArray(storedData)) {
-                    // zenyCrawlResultsOutput.textContent = JSON.stringify(storedData, null, 2);
-                    zenyCrawlResultsOutput.innerHTML = formatCharacterDetailsToHtml(storedData as CharacterDetail[]);
-                    // ステータス表示は checkCooldown や実行中のメッセージで管理するため、ここでは更新しない。
-                }
-            });
+    function updateLastUpdatedText(timestamp: number) {
+        if (!zenyCrawlLastUpdated) return;
+        zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(timestamp)}`;
+    }
+
+    async function loadLastUpdatedTimestamp() {
+        const result = await readLocalStorage([STORAGE_KEYS.zenyCrawlLastUpdated]);
+        const timestamp = result[STORAGE_KEYS.zenyCrawlLastUpdated];
+        if (typeof timestamp === 'number') {
+            updateLastUpdatedText(timestamp);
+            checkCooldown(timestamp);
         }
     }
 
-    // 収集結果を整形してHTML文字列を生成する関数
-    function formatCharacterDetailsToHtml(details: CharacterDetail[]): string {
-        if (!details || details.length === 0) {
-            return '<p class="text-gray-500">データがありません</p>';
-        }
+    async function loadStoredCrawlResults() {
+        if (!zenyCrawlResultsOutput) return;
 
-        // ワールドごとにグループ化
-        const worldsData: { [worldValue: string]: { worldText: string, characters: CharacterDetail[], totalZeny: number } } = {};
-        details.forEach(char => {
-            if (!worldsData[char.value]) {
-                worldsData[char.value] = { worldText: char.text, characters: [], totalZeny: 0 };
-            }
-            worldsData[char.value].characters.push(char);
-            // Zenyを数値に変換して合計 (カンマ区切りと "Zeny" を除去)
-            const zenyString = (char.zeny || "0").replace(/,/g, '').replace(/\s*Zeny/i, '');
-            const zenyAmount = parseInt(zenyString, 10);
-            if (!isNaN(zenyAmount)) {
-                worldsData[char.value].totalZeny += zenyAmount;
+        const result = await readLocalStorage([STORAGE_KEYS.zenyCrawlResults]);
+        const storedData = result[STORAGE_KEYS.zenyCrawlResults];
+        if (Array.isArray(storedData)) {
+            zenyCrawlResultsOutput.innerHTML = formatCharacterDetailsToHtml(storedData as CharacterDetail[], currentZenyDisplayPreference);
+        }
+    }
+
+    function syncZenyDisplayRadios() {
+        zenyDisplayModeRadios.forEach(radio => {
+            radio.checked = radio.value === currentZenyDisplayPreference;
+        });
+    }
+
+    async function loadZenyDisplayPreference() {
+        const result = await readLocalStorage([STORAGE_KEYS.zenyDisplayPreference]);
+        const storedPreference = result[STORAGE_KEYS.zenyDisplayPreference];
+        currentZenyDisplayPreference = isZenyDisplayPreference(storedPreference)
+            ? storedPreference
+            : DEFAULT_ZENY_DISPLAY_PREFERENCE;
+
+        syncZenyDisplayRadios();
+        await loadStoredCrawlResults();
+    }
+
+    async function saveZenyDisplayPreference(preference: ZenyDisplayPreference) {
+        currentZenyDisplayPreference = preference;
+        await writeLocalStorage({ [STORAGE_KEYS.zenyDisplayPreference]: preference }, 'Zeny display preference');
+        await loadStoredCrawlResults();
+    }
+
+    zenyDisplayModeRadios.forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            const preference = (event.target as HTMLInputElement).value;
+            if (isZenyDisplayPreference(preference)) {
+                void saveZenyDisplayPreference(preference);
             }
         });
+    });
 
-        let html = '<div class="space-y-4">';
-        for (const worldValue in worldsData) {
-            const world = worldsData[worldValue];
-            let totalZenyDisplay: string;
-
-            if (currentZenyDisplayPreference === 'full') {
-                totalZenyDisplay = formatActualZeny(world.totalZeny);
-            } else { // 'short' or default
-                totalZenyDisplay = `<span class="zeny-value" tabindex="0" data-actual-zeny="${world.totalZeny}">${formatZenyForDisplay(world.totalZeny)}</span>`;
-            }
-
-            html += `<div class="p-3 bg-gray-50 rounded-md shadow-sm">`;
-            html += `<h3 class="text-lg font-semibold text-blue-800">${world.worldText} (合計: ${totalZenyDisplay})</h3>`;
-            if (world.characters.length > 0) {
-                html += '<ul class="list-disc list-inside ml-4 mt-2 space-y-1 text-sm">';
-                world.characters.forEach(char => {
-                    const charZenyString = (char.zeny || "0").replace(/,/g, '').replace(/\s*Zeny/i, '');
-                    const charZenyAmount = parseInt(charZenyString, 10);
-                    let charZenyDisplay: string;
-
-                    if (isNaN(charZenyAmount)) {
-                        charZenyDisplay = char.zeny || 'Zeny不明';
-                    } else {
-                        if (currentZenyDisplayPreference === 'full') {
-                            charZenyDisplay = formatActualZeny(charZenyAmount);
-                        } else { // 'short'
-                            charZenyDisplay = `<span class="zeny-value" tabindex="0" data-actual-zeny="${charZenyAmount}">${formatZenyForDisplay(charZenyAmount)}</span>`;
-                        }
-                    }
-                    html += `<li>${char.characterName || '不明なキャラクター'} (${charZenyDisplay})</li>`;
-                });
-                html += '</ul>';
-            }
-            html += `</div>`;
-        }
-        html += '</div>';
-        return html;
-    }
-
-    // クールダウン状態を確認し、ボタンの状態と残り時間を更新する関数
-    let cooldownIntervalId: number | null = null;
     function checkCooldown(lastExecutionTime: number) {
         if (!zenyCrawlButton || !zenyCrawlStatus) return;
 
         const now = Date.now();
         const timeSinceLastExecution = now - lastExecutionTime;
 
-        if (timeSinceLastExecution < COOLDOWN_DURATION_MS) {
-            zenyCrawlButton.disabled = true;
-            zenyCrawlButton.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400');
-            zenyCrawlButton.classList.remove('bg-blue-500', 'hover:bg-blue-700');
-            const remainingTimeMs = COOLDOWN_DURATION_MS - timeSinceLastExecution;
-            
+        if (timeSinceLastExecution < ZENY_COOLDOWN_DURATION_MS) {
+            setZenyButtonEnabled(false);
+
             const updateRemainingTime = () => {
                 const currentNow = Date.now();
-                const newRemainingTimeMs = COOLDOWN_DURATION_MS - (currentNow - lastExecutionTime);
+                const newRemainingTimeMs = ZENY_COOLDOWN_DURATION_MS - (currentNow - lastExecutionTime);
                 if (newRemainingTimeMs <= 0) {
-                    zenyCrawlStatus.textContent = '再実行可能です';
-                    zenyCrawlButton.disabled = false;
-                    zenyCrawlButton.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400');
-                    zenyCrawlButton.classList.add('bg-blue-500', 'hover:bg-blue-700');
+                    setZenyStatus('再実行可能です');
+                    setZenyButtonEnabled(true);
                     if (cooldownIntervalId) clearInterval(cooldownIntervalId);
                     cooldownIntervalId = null;
                 } else {
                     const minutes = Math.floor(newRemainingTimeMs / 60000);
                     const seconds = Math.floor((newRemainingTimeMs % 60000) / 1000);
-                    zenyCrawlStatus.textContent = `再実行可能まであと ${minutes}分${seconds}秒`;
+                    setZenyStatus(`再実行可能まであと ${minutes}分${seconds}秒`);
                 }
             };
 
@@ -341,15 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRemainingTime(); // 初回実行
             cooldownIntervalId = window.setInterval(updateRemainingTime, 1000);
         } else {
-            zenyCrawlButton.disabled = false;
-            zenyCrawlButton.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400');
-            zenyCrawlButton.classList.add('bg-blue-500', 'hover:bg-blue-700');
-            if (zenyCrawlStatus) {
-                // クールダウンが終了していれば「再実行可能です」と表示。
-                // 収集中やエラー表示の場合は、それぞれのハンドラでメッセージが設定される。
-                zenyCrawlStatus.textContent = '再実行可能です';
-            }
-            // クールダウンタイマーが動いていればクリア
+            setZenyButtonEnabled(true);
+            setZenyStatus('再実行可能です');
             if (cooldownIntervalId) {
                 clearInterval(cooldownIntervalId);
                 cooldownIntervalId = null;
@@ -357,142 +419,146 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (zenyCrawlButton && zenyCrawlStatus && zenyCrawlResultsOutput) {
-        zenyCrawlButton.addEventListener('click', async () => {
-            if (!zenyCrawlStatus || !zenyCrawlResultsOutput || !zenyCrawlButton) return; // Null check
+    function formatStatusUrl(url: string): string {
+        return url.length > 60
+            ? `${url.substring(0, 30)}...${url.substring(url.length - 25)}`
+            : url;
+    }
 
-            // ボタンが無効（クールダウン中など）なら何もしない
-            if (zenyCrawlButton.disabled) {
+    async function executeActiveTabScript<TArgs extends unknown[], TResult>(
+        tabId: number,
+        func: (...args: TArgs) => TResult,
+        args?: TArgs
+    ): Promise<TResult | null> {
+        const [result] = await chrome.scripting.executeScript<TArgs, TResult>({
+            target: { tabId },
+            func,
+            args,
+        });
+
+        return (result?.result ?? null) as TResult | null;
+    }
+
+    async function injectZenyScraper(tabId: number) {
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            files: [ZENY_SCRAPER_FILE],
+        });
+    }
+
+    async function fetchWorldOptions(tabId: number): Promise<WorldInfo[] | null> {
+        return executeActiveTabScript<[], WorldInfo[] | null>(
+            tabId,
+            () => (window as any).getWorldOptionsFromPage ? (window as any).getWorldOptionsFromPage() : null
+        );
+    }
+
+    async function fetchCharacterPageLinks(tabId: number, world: WorldInfo): Promise<CharacterPageLink[] | null> {
+        return executeActiveTabScript<[string, string], CharacterPageLink[] | null>(
+            tabId,
+            (worldVal, worldTxt) => (window as any).scrapeCharacterLinksForWorld
+                ? (window as any).scrapeCharacterLinksForWorld(worldVal, worldTxt)
+                : null,
+            [world.value, world.text]
+        );
+    }
+
+    async function fetchCharacterDetail(tabId: number, pageLink: CharacterPageLink): Promise<CharacterDetail | null> {
+        return executeActiveTabScript<[CharacterPageLink], CharacterDetail | null>(
+            tabId,
+            (charPageLink) => (window as any).scrapeCharacterDetails
+                ? (window as any).scrapeCharacterDetails(charPageLink)
+                : null,
+            [pageLink]
+        );
+    }
+
+    async function collectCharacterDetails(tabId: number): Promise<CharacterDetail[] | null> {
+        setZenyStatus('対象ページでワールドリストを取得中...');
+        await injectZenyScraper(tabId);
+
+        const worldOptions = await fetchWorldOptions(tabId);
+        if (!worldOptions) {
+            setZenyStatus('ワールドリストの取得に失敗しました', 'text-red-500');
+            return null;
+        }
+
+        if (worldOptions.length === 0) {
+            setZenyStatus('収集対象のワールドが見つかりませんでした');
+            return null;
+        }
+
+        const allCharacterDetails: CharacterDetail[] = [];
+        for (const world of worldOptions) {
+            setZenyStatus(`${world.text} のキャラクターURLリストを収集中...`);
+            const characterPageLinks = await fetchCharacterPageLinks(tabId, world);
+            if (!characterPageLinks) continue;
+
+            for (const pageLink of characterPageLinks) {
+                setZenyStatus(`${pageLink.text} - ${formatStatusUrl(pageLink.href)} から取得中...`);
+                const detail = await fetchCharacterDetail(tabId, pageLink);
+                allCharacterDetails.push(detail ?? { ...pageLink, characterName: '取得失敗', zeny: '取得失敗' });
+            }
+        }
+
+        return allCharacterDetails;
+    }
+
+    async function persistCrawlCompletion(details: CharacterDetail[], timestamp: number) {
+        await writeLocalStorage({
+            [STORAGE_KEYS.zenyCrawlLastUpdated]: timestamp,
+            [STORAGE_KEYS.zenyCrawlResults]: details,
+        }, 'Zeny crawl results');
+        updateLastUpdatedText(timestamp);
+        checkCooldown(timestamp);
+    }
+
+    async function handleZenyCrawlClick() {
+        if (!zenyCrawlButton || !zenyCrawlResultsOutput) return;
+        if (zenyCrawlButton.disabled) return;
+
+        setZenyStatus('情報収集中...');
+        setZenyButtonEnabled(false);
+        zenyCrawlResultsOutput.textContent = '';
+
+        try {
+            const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (!activeTab?.id || !activeTab.url || !ZENY_TARGET_URL_PATTERN.test(activeTab.url)) {
+                setZenyStatus('アクティブなタブがキャラクター情報ページではありません', 'text-red-500');
+                zenyCrawlResultsOutput.textContent = activeTab?.url
+                    ? `現在のURL: ${activeTab.url}`
+                    : 'アクティブなタブが見つからないか、URLがありません';
                 return;
             }
 
-            zenyCrawlStatus.textContent = '情報収集中...';
-            zenyCrawlStatus.classList.remove('text-red-500', 'text-green-500', 'text-yellow-600');
-            zenyCrawlButton.disabled = true;
-            zenyCrawlResultsOutput.textContent = ''; // 前回の結果をクリア
-
-            try {
-                const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-                if (activeTab && activeTab.id && activeTab.url && targetUrlPattern.test(activeTab.url)) {
-                    zenyCrawlStatus.textContent = `対象ページでワールドリストを取得中...`;
-
-                    await chrome.scripting.executeScript({
-                        target: { tabId: activeTab.id },
-                        files: ["/tools/js/zeny-characterpage-scraper.js"],
-                    });
-
-                    const worldOptionsResults = await chrome.scripting.executeScript<[], WorldInfo[] | null>({
-                        target: { tabId: activeTab.id },
-                        func: () => (window as any).getWorldOptionsFromPage ? (window as any).getWorldOptionsFromPage() : null,
-                    });
-
-                    if (!worldOptionsResults || !worldOptionsResults[0] || !worldOptionsResults[0].result) {
-                        zenyCrawlStatus.textContent = 'ワールドリストの取得に失敗しました';
-                        zenyCrawlStatus.classList.add('text-red-500');
-                        return;
-                    }
-
-                    const worldOptions = worldOptionsResults[0].result;
-                    if (worldOptions.length === 0) {
-                        zenyCrawlStatus.textContent = '収集対象のワールドが見つかりませんでした';
-                        return;
-                    }
-
-                    const allCharacterDetails: CharacterDetail[] = [];
-
-                    for (const world of worldOptions) {
-                        zenyCrawlStatus.textContent = `${world.text} のキャラクターURLリストを収集中...`;
-                        
-                        const characterPageLinksResult = await chrome.scripting.executeScript<[string, string], CharacterPageLink[] | null>({
-                            target: { tabId: activeTab.id },
-                            func: (worldVal, worldTxt) => (window as any).scrapeCharacterLinksForWorld ? (window as any).scrapeCharacterLinksForWorld(worldVal, worldTxt) : null,
-                            args: [world.value, world.text]
-                        });
-
-                        if (characterPageLinksResult && characterPageLinksResult[0] && characterPageLinksResult[0].result) {
-                            const characterPageLinks = characterPageLinksResult[0].result;
-                            for (const pageLink of characterPageLinks) {
-                                let displayUrl = pageLink.href;
-                                if (displayUrl.length > 60) {
-                                    displayUrl = displayUrl.substring(0, 30) + "..." + displayUrl.substring(displayUrl.length - 25);
-                                }
-                                zenyCrawlStatus.textContent = `${pageLink.text} - ${displayUrl} から取得中...`;
-
-                                const detailResult = await chrome.scripting.executeScript<[CharacterPageLink], CharacterDetail | null>({
-                                    target: { tabId: activeTab.id },
-                                    func: (charPageLink) => (window as any).scrapeCharacterDetails ? (window as any).scrapeCharacterDetails(charPageLink) : null,
-                                    args: [pageLink]
-                                });
-
-                                if (detailResult && detailResult[0] && detailResult[0].result) {
-                                    allCharacterDetails.push(detailResult[0].result);
-                                } else {
-                                    allCharacterDetails.push({ ...pageLink, characterName: "取得失敗", zeny: "取得失敗" });
-                                }
-                            }
-                        }
-                    }
-
-                    if (allCharacterDetails.length > 0) {
-                        zenyCrawlResultsOutput.innerHTML = formatCharacterDetailsToHtml(allCharacterDetails);
-                        zenyCrawlStatus.textContent = '取得が完了しました';
-                        const now = Date.now();
-                        if (chrome.storage && chrome.storage.local) {
-                            chrome.storage.local.set({ [ZenyCrawlLastUpdatedStorageKey]: now }, () => {
-                                if (chrome.runtime.lastError) {
-                                    console.error("Error saving last updated timestamp:", chrome.runtime.lastError.message);
-                                } else if (zenyCrawlLastUpdated) {
-                                    zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(now)}`;
-                                    checkCooldown(now); // 実行後にもクールダウン開始
-                                }
-                            });
-                            chrome.storage.local.set({ [ZenyCrawlResultsStorageKey]: allCharacterDetails }, () => {
-                                if (chrome.runtime.lastError) {
-                                    console.error("Error saving crawl results:", chrome.runtime.lastError.message);
-                                }
-                            });
-                        }
-                    } else {
-                        zenyCrawlResultsOutput.textContent = '収集対象のキャラクターは見つかりませんでした';
-                        zenyCrawlStatus.textContent = '取得完了 (データなし)';
-                        // データなしの場合もクールダウンは開始する（API負荷軽減のため）
-                        const now = Date.now();
-                         if (chrome.storage && chrome.storage.local && zenyCrawlLastUpdated) {
-                            chrome.storage.local.set({ [ZenyCrawlLastUpdatedStorageKey]: now }, () => {
-                                if (chrome.runtime.lastError) console.error("Error saving last updated timestamp (no data):", chrome.runtime.lastError.message);
-                                else zenyCrawlLastUpdated.textContent = `前回取得: ${formatTimestampToYyyyMmDdHhMmSs(now)}`;
-                                checkCooldown(now);
-                            });
-                        } else {
-                             checkCooldown(now); // ストレージがなくてもクールダウンは試みる
-                        }
-                    }
-
-                } else {
-                    zenyCrawlStatus.textContent = 'アクティブなタブがキャラクター情報ページではありません';
-                    zenyCrawlStatus.classList.add('text-red-500');
-                    if (activeTab && activeTab.url) {
-                        zenyCrawlResultsOutput.textContent = `現在のURL: ${activeTab.url}`;
-                    } else {
-                        zenyCrawlResultsOutput.textContent = `アクティブなタブが見つからないか、URLがありません`;
-                    }
-                }
-            } catch (error: any) {
-                console.error('Zeny情報取得に失敗しました:', error);
-                zenyCrawlStatus.textContent = `エラー: ${error.message}`;
-                zenyCrawlStatus.classList.add('text-red-500');
-                zenyCrawlResultsOutput.textContent = '処理中にエラーが発生しました。コンソールで詳細を確認してください。';
-                // エラー発生時、ボタンは disabled のまま。
-                // 必要であれば、ここで checkCooldown(0) を呼んでリセットし、ボタンを有効化することもできる。
-                // 例: checkCooldown(0); // エラー後は即再試行可能にする場合
-            } finally {
-                // ボタンの有効/無効は checkCooldown が主に管理する。
-                // 収集処理が正常に完了した場合（データあり/なし問わず）、checkCooldown(now) が呼ばれ、
-                // クールダウンが開始され、ボタンは disabled になる。
-                // 収集処理中にエラーが発生した場合や、対象ページでない場合は、ボタンは disabled のまま。
-                // この finally ブロックでボタンの状態を強制的に変更する必要は基本的にはない。
+            const allCharacterDetails = await collectCharacterDetails(activeTab.id);
+            if (allCharacterDetails === null) {
+                return;
             }
+
+            const now = Date.now();
+            if (allCharacterDetails.length > 0) {
+                zenyCrawlResultsOutput.innerHTML = formatCharacterDetailsToHtml(allCharacterDetails, currentZenyDisplayPreference);
+                setZenyStatus('取得が完了しました');
+                await persistCrawlCompletion(allCharacterDetails, now);
+                return;
+            }
+
+            zenyCrawlResultsOutput.textContent = '収集対象のキャラクターは見つかりませんでした';
+            setZenyStatus('取得完了 (データなし)');
+            await writeLocalStorage({ [STORAGE_KEYS.zenyCrawlLastUpdated]: now }, 'Zeny crawl last updated timestamp');
+            updateLastUpdatedText(now);
+            checkCooldown(now);
+        } catch (error: any) {
+            console.error('Zeny情報取得に失敗しました:', error);
+            setZenyStatus(`エラー: ${error.message}`, 'text-red-500');
+            zenyCrawlResultsOutput.textContent = '処理中にエラーが発生しました。コンソールで詳細を確認してください。';
+        }
+    }
+
+    if (zenyCrawlButton && zenyCrawlStatus && zenyCrawlResultsOutput) {
+        zenyCrawlButton.addEventListener('click', () => {
+            void handleZenyCrawlClick();
         });
 
         // Zeny表示のフォーカスイベントリスナー (zenyCrawlResultsOutput が確実に存在する場合に設定)
@@ -500,9 +566,9 @@ document.addEventListener('DOMContentLoaded', () => {
             zenyCrawlResultsOutput.addEventListener('focusin', (event) => {
                 if (currentZenyDisplayPreference === 'short') {
                     const target = event.target as HTMLElement;
-                    if (target.classList.contains('zeny-value') && target.dataset.actualZeny) {
+                    if (target.classList.contains(ZENY_VALUE_CLASS_NAME) && target.dataset.actualZeny) {
                         const actualZenyValue = parseInt(target.dataset.actualZeny, 10);
-                        if (!isNaN(actualZenyValue)) {
+                        if (!Number.isNaN(actualZenyValue)) {
                             target.textContent = formatActualZeny(actualZenyValue);
                         }
                     }
@@ -512,10 +578,10 @@ document.addEventListener('DOMContentLoaded', () => {
             zenyCrawlResultsOutput.addEventListener('focusout', (event) => {
                 if (currentZenyDisplayPreference === 'short') {
                     const target = event.target as HTMLElement;
-                    if (target.classList.contains('zeny-value') && target.dataset.actualZeny) {
+                    if (target.classList.contains(ZENY_VALUE_CLASS_NAME) && target.dataset.actualZeny) {
                         const actualZenyValue = parseInt(target.dataset.actualZeny, 10);
-                        if (!isNaN(actualZenyValue)) {
-                            target.textContent = formatZenyForDisplay(actualZenyValue);
+                        if (!Number.isNaN(actualZenyValue)) {
+                            target.textContent = formatShortZeny(actualZenyValue);
                         }
                     }
                 }
@@ -537,16 +603,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-            if (activeTab && activeTab.url && targetUrlPattern.test(activeTab.url)) {
+            if (activeTab && activeTab.url && ZENY_TARGET_URL_PATTERN.test(activeTab.url)) {
                 loadLastUpdatedTimestamp();
             } else {
-                zenyCrawlButton.disabled = true;
-                zenyCrawlButton.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400', 'hover:bg-gray-400');
-                zenyCrawlButton.classList.remove('bg-blue-500', 'hover:bg-blue-700');
-                
-                zenyCrawlStatus.textContent = '取得対象外のページです';
-                zenyCrawlStatus.classList.remove('text-green-500', 'text-red-500');
-                zenyCrawlStatus.classList.add('text-yellow-600');
+                setZenyButtonEnabled(false);
+                setZenyStatus('取得対象外のページです', 'text-yellow-600');
 
                 zenyCrawlLastUpdated.textContent = '';
             }
@@ -555,8 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error: any) {
             console.error("Error initializing Zeny crawl button state:", error);
             if (zenyCrawlStatus) {
-                zenyCrawlStatus.textContent = `ボタン状態の初期化エラー: ${error.message}`;
-                zenyCrawlStatus.classList.add('text-red-500');
+                setZenyStatus(`ボタン状態の初期化エラー: ${error.message}`, 'text-red-500');
             }
             if (zenyCrawlButton) zenyCrawlButton.disabled = true;
         }
@@ -565,3 +625,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeZenyCrawlFeatureState(); // ボタン状態などの初期設定
     loadZenyDisplayPreference(); // 表示設定を読み込み、それに基づいて結果を表示
 });
+
+export {};

@@ -14,32 +14,48 @@ interface CharacterDetail extends CharacterPageLink {
   zeny?: string;
 }
 
+const SCRAPE_DELAY_MS = 1500;
+const SELECTORS = {
+  characterLinks: "body > main > article > div > div.listSet > ul > li > dl > dt > a",
+  characterName: "body > main > article > section > div.base > table > tbody > tr:nth-child(1) > td:nth-child(2)",
+  zeny: "body > main > article > section > div.info > table > tbody > tr:nth-child(2) > td",
+} as const;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function fetchHtmlDocument(url: string): Promise<Document | null> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    console.error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+    return null;
+  }
+
+  const htmlText = await response.text();
+  return new DOMParser().parseFromString(htmlText, 'text/html');
+}
+
 /**
  * 指定されたキャラクターページからワールド選択の情報を取得する関数。
  * この関数は、対象のウェブページのコンテキストで実行されることを意図しています。
  */
 async function scrapeCharacterLinksForWorld(worldValue: string, worldText: string): Promise<CharacterPageLink[] | null> {
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   if (!worldValue) {
     return null;
   }
 
   const characterListPageUrl = `https://rowebtool.gungho.jp/character/${worldValue}/0`;
 
-  await sleep(1500);
+  await sleep(SCRAPE_DELAY_MS);
 
   try {
-    const response = await fetch(characterListPageUrl);
-    if (!response.ok) {
-      console.error(`Failed to fetch ${characterListPageUrl}: ${response.status} ${response.statusText}`);
+    const doc = await fetchHtmlDocument(characterListPageUrl);
+    if (!doc) {
       return null;
     }
-    const htmlText = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlText, 'text/html');
 
-    const links = doc.querySelectorAll("body > main > article > div > div.listSet > ul > li > dl > dt > a");
+    const links = doc.querySelectorAll(SELECTORS.characterLinks);
     const characterLinksOnPage: CharacterPageLink[] = Array.from(links).map(a => ({
       href: (a as HTMLAnchorElement).href,
       value: worldValue,
@@ -53,27 +69,21 @@ async function scrapeCharacterLinksForWorld(worldValue: string, worldText: strin
 }
 
 async function scrapeCharacterDetails(characterPageLink: CharacterPageLink): Promise<CharacterDetail | null> {
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   if (!characterPageLink.href) {
     console.warn("Character href is empty, skipping detail scraping.");
     return null;
   }
 
-  await sleep(1500);
+  await sleep(SCRAPE_DELAY_MS);
 
   try {
-    const response = await fetch(characterPageLink.href);
-    if (!response.ok) {
-      console.error(`Failed to fetch ${characterPageLink.href}: ${response.status} ${response.statusText}`);
+    const doc = await fetchHtmlDocument(characterPageLink.href);
+    if (!doc) {
       return { ...characterPageLink, characterName: "取得失敗", zeny: "取得失敗" }; // URLはあるが詳細取得失敗
     }
-    const htmlText = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlText, 'text/html');
 
-    const charNameElement = doc.querySelector("body > main > article > section > div.base > table > tbody > tr:nth-child(1) > td:nth-child(2)");
-    const zenyElement = doc.querySelector("body > main > article > section > div.info > table > tbody > tr:nth-child(2) > td");
+    const charNameElement = doc.querySelector(SELECTORS.characterName);
+    const zenyElement = doc.querySelector(SELECTORS.zeny);
 
     const characterName = charNameElement?.textContent?.trim() || "不明";
     const zeny = zenyElement?.textContent?.trim() || "不明";
