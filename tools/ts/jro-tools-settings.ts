@@ -22,7 +22,8 @@ export interface WorldZenySummary {
 export type ZenyDisplayPreference = 'full' | 'short';
 
 const DEFAULT_ZENY_DISPLAY_PREFERENCE: ZenyDisplayPreference = 'full';
-const ZENY_TARGET_URL_PATTERN = /^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$/;
+const ZENY_CHARACTER_INDEX_URL_PATTERN = /^https:\/\/rowebtool\.gungho\.jp\/character\/?(?:\?[^#]*)?(?:#.*)?$/;
+const ZENY_CHARACTER_DETAIL_URL_PATTERN = /^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$/;
 const ZENY_SCRAPER_FILE = '/tools/js/zeny-characterpage-scraper.js';
 const ZENY_COOLDOWN_DURATION_MS = 5 * 60 * 1000;
 const ZENY_VALUE_CLASS_NAME = 'zeny-value';
@@ -37,7 +38,8 @@ const STORAGE_KEYS = {
 let currentZenyDisplayPreference: ZenyDisplayPreference = DEFAULT_ZENY_DISPLAY_PREFERENCE;
 
 export function isZenyTargetUrl(url: string | undefined): boolean {
-    return typeof url === 'string' && ZENY_TARGET_URL_PATTERN.test(url);
+    return typeof url === 'string'
+        && (ZENY_CHARACTER_INDEX_URL_PATTERN.test(url) || ZENY_CHARACTER_DETAIL_URL_PATTERN.test(url));
 }
 
 class ZenyCrawlInterruptedError extends Error {

@@ -98,12 +98,14 @@ Side Panel の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な�
 実行対象 URL は次の形式です。
 
 ```text
+https://rowebtool.gungho.jp/character
 https://rowebtool.gungho.jp/character/{world}/{characterId}
 ```
 
 実装上の判定正規表現は次の通りです。
 
 ```text
+^https:\/\/rowebtool\.gungho\.jp\/character\/?(?:\?[^#]*)?(?:#.*)?$
 ^https:\/\/rowebtool\.gungho\.jp\/character\/\w+\/\d+$
 ```
 

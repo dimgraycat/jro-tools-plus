@@ -23,11 +23,17 @@ describe('Zeny display preference', () => {
 });
 
 describe('Zeny target page detection', () => {
-  it('matches only rowebtool character detail pages', () => {
+  it('matches rowebtool character index and detail pages', () => {
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character'), true);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/'), true);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character?x=1'), true);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/?x=1'), true);
+    assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/3/0'), true);
     assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01/123456'), true);
     assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01/0'), true);
     assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01'), false);
     assert.equal(isZenyTargetUrl('https://rowebtool.gungho.jp/character/world01/123456?x=1'), false);
+    assert.equal(isZenyTargetUrl('https://rotool.gungho.jp/character'), false);
     assert.equal(isZenyTargetUrl('https://rotool.gungho.jp/character/world01/123456'), false);
     assert.equal(isZenyTargetUrl(undefined), false);
   });
