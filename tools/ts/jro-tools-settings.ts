@@ -205,7 +205,6 @@ if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
     const menuItems = document.querySelectorAll('nav ul li[class*="js-menu-"]');
     const pageElements = document.querySelectorAll('main[class*="js-pages-"]');
-    const featureToggles = Array.from(document.querySelectorAll<HTMLInputElement>('input[data-storage-toggle]'));
 
     function updateActiveState() {
         const currentHash = window.location.hash;
@@ -258,57 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveState();
     }
 
-    // トグル設定をストレージから読み込む
-    function loadToggleSettings() {
-        if (!(chrome && chrome.storage && chrome.storage.local)) {
-            console.warn("chrome.storage.local is not available. Toggle states will not be persisted.");
-            return;
-        }
-
-        const keysToGet = featureToggles.map(toggle => toggle.id);
-        chrome.storage.local.get(keysToGet, (result) => {
-            if (chrome.runtime.lastError) {
-                console.error("Error loading toggle settings:", chrome.runtime.lastError.message);
-                return;
-            }
-            featureToggles.forEach(toggle => { // toggle is HTMLInputElement here
-                if (result[toggle.id] !== undefined) {
-                    toggle.checked = Boolean(result[toggle.id]);
-                    return;
-                }
-
-                if (toggle.dataset.defaultChecked === 'true') {
-                    toggle.checked = true;
-                }
-            });
-        });
-    }
-
-    // トグル設定をストレージに保存する
-    function saveToggleSetting(toggleId: string, isChecked: boolean) {
-        if (!(chrome && chrome.storage && chrome.storage.local)) {
-            return;
-        }
-        const setting: { [key: string]: boolean } = {};
-        setting[toggleId] = isChecked;
-        chrome.storage.local.set(setting, () => {
-            if (chrome.runtime.lastError) {
-                console.error("Error saving toggle setting for " + toggleId + ":", chrome.runtime.lastError.message);
-            }
-        });
-    }
-
-    // 各トグルスイッチに変更イベントリスナーを追加
-    featureToggles.forEach(toggle => {
-        toggle.addEventListener('change', (event) => {
-            const target = event.target as HTMLInputElement;
-            saveToggleSetting(target.id, target.checked);
-        });
-    });
-
     window.addEventListener('hashchange', updateActiveState);
     initialize();
-    loadToggleSettings();
 
     // --- 所持Zeny情報収集機能 ---
     const zenyCrawlButton = document.getElementById('zeny-crawl-button') as HTMLButtonElement | null;

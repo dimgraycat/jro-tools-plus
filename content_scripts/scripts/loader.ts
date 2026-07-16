@@ -1,5 +1,4 @@
 import './../sass/jro_tools_plus.scss'; // Webpackで処理するためにSCSSをインポート
-import { initializeItemNameLinker } from '../lib/item-name-linker';
 
 interface SiteRule {
   domain: string;
@@ -30,5 +29,3 @@ siteConfigs.forEach((config: SiteRule): void => {
     injectScripts(config.js);
   }
 });
-
-initializeItemNameLinker();

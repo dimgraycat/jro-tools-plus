@@ -19,7 +19,6 @@ Manifest は `public/manifest.json` で管理します。
 - Background service worker: `background/service-worker.js`
 - Content script 対象:
   - `https://rotool.gungho.jp/*`
-  - `https://ragnarokonline.gungho.jp/*`
 - Content script 実行タイミング: `document_end`
 - Content script 出力:
   - `content_scripts/loader.js`
@@ -34,7 +33,6 @@ Manifest は `public/manifest.json` で管理します。
 
 Host permissions は次の通りです。
 
-- `https://asgrcat.github.io/*`: アイテム名と item ID の対応表を取得する
 - `https://rowebtool.gungho.jp/*`: Side Panel を先に開いた後でキャラクター情報ページへ切り替えた場合でも、対象タブの URL 判定と scraper 注入を実行する
 
 `web_accessible_resources` では次のリソースを jRO 公式系ドメインから参照可能にします。
@@ -46,13 +44,12 @@ Host permissions は次の通りです。
 
 - `https://rotool.gungho.jp/*`
 - `https://rowebtool.gungho.jp/*`
-- `https://ragnarokonline.gungho.jp/*`
 
 ## Content Script
 
 入口は `content_scripts/scripts/loader.ts` です。
 
-`loader.ts` は SCSS を import し、webpack によって CSS と JS に分離されます。`rotool.gungho.jp` の `/monster/*` と `/map/*` では検索結果のドロップ率表示を補助し、`ragnarokonline.gungho.jp` ではラグ缶ラインナップのアイテム名リンク化を初期化します。
+`loader.ts` は SCSS を import し、webpack によって CSS と JS に分離されます。`rotool.gungho.jp` の `/monster/*` と `/map/*` では検索結果のドロップ率表示を補助します。
 
 検索結果のドロップ率表示は SCSS で定義します。
 
@@ -82,15 +79,12 @@ Side Panel の HTML は `tools/sidepanel.html` です。拡張機能アイコン
 Side Panel のヘッダーにはページ切り替えメニューを表示します。
 
 - `所持Zeny`: 所持 Zeny 収集画面
-- `オプション`: toggle 設定画面
 
 旧 popup 用の HTML として `tools/index.html` も残していますが、Manifest の `action.default_popup` は使いません。
 
 Side Panel の TypeScript は `tools/ts/jro-tools-settings.ts` です。主な責務は次の通りです。
 
 - hash に応じたページ表示切り替え
-- Side Panel 内の toggle 状態の保存・復元
-- ラグ缶ラインナップのアイテム名リンク化設定の保存・復元
 - Zeny 表示形式の保存・復元
 - Zeny 収集ボタンの有効・無効状態管理
 - active tab の切り替え・URL 変更に応じた対象ページ再判定
@@ -131,28 +125,6 @@ https://rowebtool.gungho.jp/character/{world}/{characterId}
 
 収集中は Side Panel のステータスに、完了まで対象タブを閉じないよう警告を表示します。収集中に対象タブが閉じられた場合は収集を中断し、保存済みの Zeny 収集結果は上書きしません。
 
-## ラグ缶ラインナップのアイテム名リンク化
-
-`https://ragnarokonline.gungho.jp/*` 上では、Side Panel の `オプション` で `ラグ缶ラインナップのアイテム名リンク化` が有効な場合、ラグ缶系ページのラインナップ内にあるアイテム名を RO 公式ツールのアイテム詳細へリンクします。ラグ缶ページの URL は固定しないため、URL ではなく次の selector が存在するかで対象領域を判定します。
-
-```text
-#block-gungho-content > article > div.article__content > div.lineup-list
-```
-
-アイテム名と item ID の対応表は次の JSON を使用します。
-
-```text
-https://asgrcat.github.io/jro-search/data/items/name-map.json
-```
-
-JSON は `{ "item_id": "アイテム名" }` 形式です。リンク先は次の形式です。
-
-```text
-https://rotool.gungho.jp/item/{item_id}/
-```
-
-指定 selector の外側、既存のリンク、フォーム、script/style などの中にあるテキストはリンク化しません。同じアイテム名が複数 ID に存在する場合は、最初に読み込んだ ID を使用します。1 文字のアイテム名は誤リンクを避けるため対象外にします。
-
 ### Scraper
 
 Scraper は `tools/ts/zeny-characterpage-scraper.ts` です。対象ページの `window` に次の関数を公開します。
@@ -177,7 +149,6 @@ Scraper は `tools/ts/zeny-characterpage-scraper.ts` です。対象ページの
 | `zenyDisplayPreference` | Zeny 表示形式。`full` または `short` |
 | `zenyCrawlLastUpdatedTimestamp` | 前回取得日時の Unix epoch milliseconds |
 | `zenyCrawlResultsData` | 収集したキャラクター別 Zeny 情報の配列 |
-| `itemNameLinkerEnabled` | ラグ缶ラインナップのアイテム名リンク化の有効・無効 |
 
 `zenyCrawlResultsData` の要素は次の形です。
 

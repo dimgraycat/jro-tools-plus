@@ -13,8 +13,7 @@
         {
             "run_at": "document_end",
             "matches": [
-                "https://rotool.gungho.jp/*",
-                "https://ragnarokonline.gungho.jp/*"
+                "https://rotool.gungho.jp/*"
             ],
             "js": [
                 "content_scripts/loader.js"
@@ -42,7 +41,6 @@
         "scripting"
     ],
     "host_permissions": [
-        "https://asgrcat.github.io/*",
         "https://rowebtool.gungho.jp/*"
     ],
     "web_accessible_resources": [
@@ -53,8 +51,7 @@
             ],
             "matches": [
                 "https://rotool.gungho.jp/*",
-                "https://rowebtool.gungho.jp/*",
-                "https://ragnarokonline.gungho.jp/*"
+                "https://rowebtool.gungho.jp/*"
             ]
         }
     ]
