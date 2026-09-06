@@ -110,25 +110,28 @@ try {
             original: card.querySelector('.library-name').href,
             destinations: [...card.querySelectorAll('.library-open')].map((link) => ({
                 kind: link.dataset.destination, href: link.href, target: link.target, rel: link.rel,
-                label: link.getAttribute('aria-label'), title: link.title,
+                label: link.getAttribute('aria-label'), tooltip: link.dataset.tooltip,
             })),
         })));
         for (const card of links) {
             const original = new URL(card.original);
             const [, type, id] = original.pathname.split('/');
             const expectedSearch = `https://asgrcat.github.io/jro-search/${type === 'item' ? 'items' : 'monsters'}/?id=${encodeURIComponent(id)}`;
-            assert.deepEqual(card.destinations.map((link) => [link.kind, link.href]), [['search', expectedSearch], ['official', original.href]]);
+            assert.deepEqual(card.destinations.map((link) => [link.kind, link.href]), [['search', expectedSearch]]);
             assert.ok(card.destinations.every((link) => link.target === '_blank' && link.rel.includes('noopener')
-                && link.rel.includes('noreferrer') && link.label.includes(link.title)));
+                && link.rel.includes('noreferrer') && link.tooltip === 'JRO Searchで開く' && link.label.includes(link.tooltip)));
         }
         const buttons = await page.locator(`#${name}-list .library-favorite`).evaluateAll((nodes) => nodes.map((node) => {
             const style = getComputedStyle(node);
             return { fontSize: style.fontSize, width: style.width, height: style.height,
-                align: style.alignItems, justify: style.justifyItems };
+                align: style.alignItems, justify: style.justifyItems,
+                tooltip: node.dataset.tooltip, pressed: node.getAttribute('aria-pressed') };
         }));
         assert.ok(buttons.every((button) => button.fontSize === '24px' && button.width === '36px'
             && button.height === '36px' && button.align === 'center' && button.justify === 'center'),
         `${name} favorite icons must be enlarged and centered in the existing button`);
+        assert.ok(buttons.every((button) => button.tooltip.startsWith(button.pressed === 'true'
+            ? 'お気に入りから削除' : 'お気に入りに追加')), 'favorite tooltips must describe the current action');
     };
     const filter = async (name, type, expected) => {
         await page.locator(`[data-library="${name}"][data-filter="${type}"]`).click();
@@ -136,7 +139,7 @@ try {
     };
     const checkDestinationTabs = async (name) => {
         const before = await page.evaluate(() => window.__getLibrary());
-        for (const kind of ['search', 'official']) {
+        for (const kind of ['search']) {
             const link = page.locator(`#${name}-list [data-destination="${kind}"]`).first();
             const expected = await link.getAttribute('href');
             const opened = page.waitForEvent('popup');
@@ -152,6 +155,20 @@ try {
     await tab('money');
     assert.equal(await page.locator('#zeny-crawl-button').isDisabled(), true);
     await tab('favorites');
+    assert.equal(await page.locator('[data-destination="official"]').count(), 0);
+    for (const selector of ['#favorites-list .library-open', '#favorites-list .library-favorite']) {
+        const control = page.locator(selector).first();
+        await control.hover();
+        assert.equal(await control.evaluate((node) => getComputedStyle(node, '::after').visibility), 'visible');
+        assert.equal(await control.evaluate((node) => getComputedStyle(node, '::after').content),
+            JSON.stringify(await control.getAttribute('data-tooltip')));
+        await page.screenshot({ path: resolve(screenshotDir, selector.includes('library-open') ? 'search-tooltip.png' : 'favorite-tooltip.png') });
+        await page.mouse.move(0, 0);
+        await page.keyboard.press('Tab');
+        await control.focus();
+        assert.equal(await control.evaluate((node) => getComputedStyle(node, '::after').visibility), 'visible');
+        await control.evaluate((node) => node.blur());
+    }
     assert.equal(await page.locator('[data-library][data-filter="all"]').count(), 0);
     assert.equal(await page.locator('[data-library="favorites"]').count(), 2);
     assert.equal(await page.locator('[data-library="history"]').count(), 2);
@@ -240,7 +257,7 @@ try {
     assert.deepEqual(pageErrors, []);
     assert.deepEqual(failedRequests, []);
     console.log(JSON.stringify({ result: 'passed', mode: 'Mac Chrome Headless / mocked extension APIs', screenshots: screenshotDir,
-        checks: ['four tabs', 'both type filters', 'name-only card content', 'search/official destination links and new tabs', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
+        checks: ['four tabs', 'both type filters', 'name-only card content', 'search link and new tab', 'hover/keyboard action tooltips', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
 } catch (error) {
     await page.screenshot({ path: resolve(screenshotDir, 'failure.png'), fullPage: true }).catch(() => {});
     console.error(`Failure screenshot: ${screenshotDir}/failure.png`);

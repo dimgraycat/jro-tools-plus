@@ -73,14 +73,13 @@ function renderCard(entry: LibraryEntry, tab: LibraryTab | 'current', setId = ''
     const actions = element('div', 'library-actions');
     for (const destination of [
         { kind: 'search', label: 'JRO Searchで開く', href: searchUrl(entry), icon: 'fa-magnifying-glass' },
-        { kind: 'official', label: '公式ページで開く', href: officialUrl(entry), icon: 'fa-arrow-up-right-from-square' },
     ]) {
         const open = element('a', 'library-open');
         open.dataset.destination = destination.kind;
         open.href = destination.href;
         open.target = '_blank';
         open.rel = 'noopener noreferrer';
-        open.title = destination.label;
+        open.dataset.tooltip = destination.label;
         open.setAttribute('aria-label', `${entry.name}を${destination.label}（新しいタブ）`);
         const icon = element('i', `fa-solid ${destination.icon}`);
         icon.setAttribute('aria-hidden', 'true');
@@ -93,10 +92,10 @@ function renderCard(entry: LibraryEntry, tab: LibraryTab | 'current', setId = ''
     button.disabled = saving;
     button.setAttribute('aria-pressed', String(favorite));
     const destination = setId ? (state.sets ?? []).find((set) => set.id === setId && set.type === entry.type)?.name : '';
-    const action = favorite ? (destination ? `${destination}から解除` : 'すべてのお気に入りセットから解除')
-        : (destination ? `${destination}に追加` : 'お気に入りに追加');
+    const action = (favorite ? 'お気に入りから削除' : 'お気に入りに追加')
+        + (destination ? `（${destination}）` : favorite ? '（すべてのセット）' : '');
     button.setAttribute('aria-label', `${entry.name}を${action}`);
-    button.title = action;
+    button.dataset.tooltip = action;
     button.addEventListener('click', () => { void toggleFavorite(entry, setId); });
     actions.append(button);
     card.append(content, actions);
