@@ -166,6 +166,9 @@ try {
     await tab('updates');
     assert.match(await page.locator('#extension-version').textContent(), new RegExp(manifest.version.replaceAll('.', '\\.')));
     assert.ok(await page.locator('.extension-update').count() > 0);
+    const displayedVersions = await page.locator('.extension-update h3').allTextContents();
+    assert.ok(!displayedVersions.includes('1.3.4') && !displayedVersions.includes('1.3.3'),
+        'legacy release history must not appear in the Side Panel');
     await page.screenshot({ path: resolve(screenshotDir, 'updates.png'), fullPage: true });
     for (const width of [320, 360, 418]) {
         await page.setViewportSize({ width, height: 850 });
