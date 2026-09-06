@@ -15,6 +15,7 @@ JRO Tools Plus は JRO 公式系サイト向けの Chrome Extension です。
 Manifest は `public/manifest.json` で管理します。
 
 - Manifest version: `3`
+- 最低Chromeバージョン: `116`（`chrome.sidePanel.open()` を使用）
 - 拡張機能名: `JRO Tools Plus`
 - Side Panel: `tools/sidepanel.html`
 - Background service worker: `background/service-worker.js`
@@ -31,8 +32,8 @@ Manifest は `public/manifest.json` で管理します。
 要求権限は次の通りです。
 
 - `sidePanel`: 拡張機能アイコンから Side Panel を開閉する
-- `storage`: Side Panel 設定・Zeny 収集結果・前回取得日時を `chrome.storage.local` に保存する
-- `unlimitedStorage`: Zeny 収集結果の保存容量制限を緩和する
+- `storage`: 設定・Zeny収集結果・お気に入りセット・閲覧履歴をlocalに、パネル開閉状態をsessionに保存する
+- `unlimitedStorage`: 既存の保存データと、お気に入り・Zeny収集結果の増加による容量制限を避けるため維持する
 - `scripting`: Side Panel から対象タブへ scraper を注入・実行する
 
 Host permissions は次の通りです。
@@ -41,15 +42,11 @@ Host permissions は次の通りです。
 - `https://rotool.gungho.jp/*`: 現在の公式詳細ページを判定する
 - `https://asgrcat.github.io/*`: 公開検索ページとの共有と、公開アイテム・モンスター名の取得に使用する
 
-`web_accessible_resources` では次のリソースを JRO 公式系ドメインから参照可能にします。
+`tabs` / `activeTab` / `<all_urls>` は要求しません。対象サイトのURL・タイトルの取得とスクリプト注入は、上記のhost permissionsで行います。host permissionsのパスは権限範囲の制限に使われないため、ドメイン単位で列挙しています。
 
-- `css/jro_tools_plus.min.css`
-- `tools/js/zeny-characterpage-scraper.js`
+`web_accessible_resources` は不要なため宣言しません。公式ページ用CSSはcontent_scriptsから、Zeny scraperはscripting.executeScriptから注入し、Webページから拡張機能のリソースを直接読み込ませません。
 
-対象ドメインは次の通りです。
-
-- `https://rotool.gungho.jp/*`
-- `https://rowebtool.gungho.jp/*`
+編集元は `public/manifest.json`、Chromeへ読み込む配布物は `dist/` です。ビルドでmanifestを同期します。権限変更後は `chrome://extensions` で対象拡張機能を再読み込みし、既に開いていた公式・JRO Searchページも再読み込みしてください。
 
 ## Content Script
 

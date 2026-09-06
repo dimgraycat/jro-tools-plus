@@ -3,6 +3,7 @@
     "description": "JROの公式ページを便利にツール",
     "version": "2026.9.1",
     "manifest_version": 3,
+    "minimum_chrome_version": "116",
     "icons": {
         "16": "images/icon-16.png",
         "48": "images/icon-48.png",
@@ -41,25 +42,13 @@
     },
     "permissions": [
         "sidePanel",
+        "scripting",
         "storage",
-        "unlimitedStorage",
-        "scripting"
+        "unlimitedStorage"
     ],
     "host_permissions": [
         "https://asgrcat.github.io/*",
         "https://rotool.gungho.jp/*",
         "https://rowebtool.gungho.jp/*"
-    ],
-    "web_accessible_resources": [
-        {
-            "resources": [
-                "css/jro_tools_plus.min.css",
-                "tools/js/zeny-characterpage-scraper.js"
-            ],
-            "matches": [
-                "https://rotool.gungho.jp/*",
-                "https://rowebtool.gungho.jp/*"
-            ]
-        }
     ]
 }
