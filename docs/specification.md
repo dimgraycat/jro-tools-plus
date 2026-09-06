@@ -216,14 +216,20 @@ Tailwind CSS は `tools/css/app.css` から生成します。
 
 ## リリース
 
-リリース処理は `standard-version` を使います。
+バージョンは `<4桁の年>.<月>.<その月の更新回数>` とします。新形式は `2026.9.1` から開始します。月と回数はゼロ埋めしません。
+
+バージョンは JSON に固定値として保存します。現在日時からの自動算出は行わず、月を跨いでも、起動・ビルドしても変更しません。明示的に更新する際に、同じ月なら回数を1増やし、別の月ならその月の1回目を指定します。
+
+リリース処理は `standard-version` を使い、更新先の完全なバージョンを必ず指定します。例えば `2026.9.1` から `2026.9.2` への更新は次のとおりです。
 
 ```sh
-mise exec -- npm run bump:dryrun
-mise exec -- npm run bump
+mise exec -- npm run bump:dryrun -- 2026.9.2
+mise exec -- npm run bump -- 2026.9.2
 ```
 
-設定ファイルは `.versionrc.cjs` です。`package.json`、`package-lock.json`、`public/manifest.json` の version を更新対象にします。
+`.versionrc.cjs` で `package.json`、`package-lock.json`（ルートパッケージ情報を含む）、`public/manifest.json`、`dist/manifest.json` の version を同時に更新します。`bump:dryrun` は指定した値への変更を確認するだけで、ファイル・コミット・タグを変更しません。実際の `bump` は従来どおり更新履歴・リリースコミット・タグを作成します。
+
+バージョンを省略するとエラーになります。`patch` / `minor` / `major` は指定せず、必ず `2026.9.2` のような完全な値を渡してください。旧 `bump:minor` / `bump:major` と各 dryrun コマンドは廃止します。
 
 ## 検証
 
@@ -239,5 +245,5 @@ mise exec -- npm run build
 release 設定に影響する変更では次も確認します。
 
 ```sh
-mise exec -- npm run bump:dryrun
+mise exec -- npm run bump:dryrun -- 2026.9.2
 ```

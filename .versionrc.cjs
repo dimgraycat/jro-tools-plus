@@ -9,6 +9,10 @@ module.exports = {
       type: 'json'
     },
     {
+      filename: 'dist/manifest.json',
+      type: 'json'
+    },
+    {
       filename: 'public/manifest.json', // manifest.json へのパス
       updater: {
         readVersion: (contents) => {
