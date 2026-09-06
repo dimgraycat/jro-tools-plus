@@ -113,7 +113,8 @@ try {
         };
         Object.defineProperty(window, 'chrome', { value: api, configurable: true });
     }, { origin, version: manifest.version });
-    await page.goto(`${origin}/tools/sidepanel.html`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/tools/sidepanel.html#money`, { waitUntil: 'networkidle' });
+    assert.deepEqual(await page.locator('.panel-tabs a').allTextContents().then((labels) => labels.map((label) => label.trim())), ['検索', '所持Zeny', '更新履歴']);
     assert.equal(assistRequests, 0, 'Zeny must not fetch enchantments');
     const tab = async (name) => {
         const child = ['search-assist', 'favorites', 'history'].includes(name);
