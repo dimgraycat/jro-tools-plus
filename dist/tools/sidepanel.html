@@ -23,6 +23,9 @@
           <li class="js-menu-history border-b-2 border-transparent rounded">
             <a href="#history" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>閲覧履歴</span></a>
           </li>
+          <li class="js-menu-search-assist border-b-2 border-transparent rounded">
+            <a href="#search-assist" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>検索補助</span></a>
+          </li>
           <li class="js-menu-updates border-b-2 border-transparent rounded">
             <a href="#updates" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700"><i class="fa-solid fa-list" aria-hidden="true"></i><span>更新履歴</span></a>
           </li>
@@ -91,6 +94,13 @@
       <p id="history-empty" class="library-empty" hidden></p>
     </main>
 
+    <main id="search-assist" class="p-4 js-pages-search-assist hidden break-words">
+      <h2 class="text-xl font-bold mb-3">検索補助</h2>
+      <p class="assist-description">現在のアイテムのエンチャント情報（JRO Search）</p>
+      <div id="search-assist-content" aria-live="polite"></div>
+      <button id="search-assist-retry" type="button" hidden>再試行</button>
+    </main>
+
     <main id="updates" class="extension-history p-4 js-pages-updates hidden break-words">
       <div class="extension-history-header">
         <h2 class="extension-history-title">更新履歴</h2>
@@ -106,5 +116,6 @@
   <script src="./js/jro-tools-settings.js"></script>
   <script src="./js/zeny-characterpage-scraper.js"></script>
   <script src="./js/personal-library.js"></script>
+  <script src="./js/search-assist.js"></script>
 </body>
 </html>

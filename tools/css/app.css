@@ -1,12 +1,29 @@
 @import "@fortawesome/fontawesome-free/css/all.css";
 @import "tailwindcss";
 
-.panel-tabs { display: grid; grid-template-columns: repeat(4, auto); gap: 2px; font-size: 12px; }
+.panel-tabs { display: grid; grid-template-columns: repeat(5, auto); gap: 2px; font-size: 12px; }
 .panel-tabs a { white-space: nowrap; gap: 4px; padding: 8px 2px; }
-@media (min-width: 380px) {
+@media (max-width: 479px) {
+  .panel-tabs a { flex-direction: column; gap: 3px; }
+}
+@media (min-width: 480px) {
   .panel-tabs { font-size: 14px; }
   .panel-tabs a { padding-inline: 4px; }
 }
+.assist-description { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+#search-assist-content { font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.assist-item-name { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+#search-assist-content a { color: #1d4ed8; }
+#search-assist-content a:hover { text-decoration: underline; }
+.assist-set { border: 1px solid #d9e1ea; border-radius: 8px; background: white; margin-bottom: 10px; }
+.assist-set summary { cursor: pointer; padding: 10px; font-weight: 600; }
+.assist-set-content { padding: 0 10px 10px; }
+.assist-condition { color: #475569; font-size: 12px; white-space: pre-line; }
+.assist-slot { border-top: 1px solid #e5e7eb; margin-top: 10px; padding-top: 10px; }
+.assist-slot h4 { font-weight: 600; }
+.assist-candidates { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.assist-candidates > * { padding: 3px 7px; border: 1px solid #d9e1ea; border-radius: 5px; background: #f8fafc; }
+#search-assist-retry { margin-top: 10px; padding: 6px 12px; border: 1px solid #d9e1ea; border-radius: 5px; }
 .panel-tabs a:focus-visible, .library-filters button:focus-visible, .library-favorite:focus-visible, .library-open:focus-visible {
   outline: 2px solid #2563eb; outline-offset: 2px;
 }

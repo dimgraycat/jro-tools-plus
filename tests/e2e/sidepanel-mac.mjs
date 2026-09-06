@@ -28,10 +28,22 @@ page.on('pageerror', (error) => pageErrors.push(error.message));
 page.on('requestfailed', (request) => failedRequests.push(`${request.url()}: ${request.failure()?.errorText}`));
 
 try {
+    let assistFailure = false;
+    let assistRequests = 0;
     const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
         '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.png': 'image/png' };
     await context.route('**/*', async (route) => {
         const url = new URL(route.request().url());
+        if (url.pathname.includes('/data/search/item-details/')) {
+            ++assistRequests;
+            if (assistFailure) return route.fulfill({ status: 503, body: 'Unavailable' });
+            return route.fulfill({ json: { items: [{ item_id: '15424', name: '天蝎宮のメイル[1]', enchantments: { sets: [{
+                name: 'ラビリンスエンチャント', npc_name: '迷宮調査研究員',
+                fee: [{ item_name: '迷宮調査貢献の証', amount: 10 }],
+                slots: [{ slot_label: '第4スロット', required_refine: '精錬値8以上',
+                    candidates: [{ name: '大鷲の眼光', item_id: '4879' }, { name: '<img src=x onerror=alert(1)>' }] }],
+            }] } }, { item_id: '502', name: '青ポーション' }] } });
+        }
         // Destination tabs are placeholders: verify actual link navigation without loading external sites.
         if (['https://asgrcat.github.io', 'https://rotool.gungho.jp'].includes(url.origin)) {
             return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Destination</title>' });
@@ -52,7 +64,11 @@ try {
             { type: 'item', id: 'wanted', name: '欲しい装備' },
         ], favorites: [item, monster], history: [other, monster, item] };
         const listeners = [];
-        const event = () => ({ addListener() {} });
+        const event = () => {
+            const handlers = [];
+            return { addListener: (handler) => handlers.push(handler), emit: (...args) => handlers.forEach((handler) => handler(...args)) };
+        };
+        let activeTab = { id: 1, active: true, url: 'https://rotool.gungho.jp/item/502/', title: '青ポーション' };
         const clone = (value) => structuredClone(value);
         window.__libraryActions = [];
         window.__publishLibrary = (next) => {
@@ -79,7 +95,7 @@ try {
                 },
             },
             tabs: {
-                query: async () => [{ id: 1, active: true, url: 'https://rotool.gungho.jp/item/502/', title: '青ポーション' }],
+                query: async () => [activeTab],
                 sendMessage: async () => clone(other), onActivated: event(), onUpdated: event(), onRemoved: event(),
             },
             windows: { onFocusChanged: event(), WINDOW_ID_NONE: -1 },
@@ -90,6 +106,10 @@ try {
                     set: (_value, callback) => { callback?.(); return Promise.resolve(); },
                 },
             },
+        };
+        window.__setActiveUrl = (url) => {
+            activeTab = { ...activeTab, url };
+            api.tabs.onActivated.emit({ tabId: 1 });
         };
         Object.defineProperty(window, 'chrome', { value: api, configurable: true });
     }, { origin, version: manifest.version });
@@ -236,9 +256,29 @@ try {
     assert.ok(!displayedVersions.includes('1.3.4') && !displayedVersions.includes('1.3.3'),
         'legacy release history must not appear in the Side Panel');
     await page.screenshot({ path: resolve(screenshotDir, 'updates.png'), fullPage: true });
+    assert.equal(assistRequests, 0, 'other tabs must not fetch enchantments');
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/'));
+    await tab('search-assist');
+    await page.waitForSelector('.assist-set');
+    await page.locator('.assist-set summary').click();
+    assert.match(await page.locator('#search-assist-content').textContent(), /迷宮調査貢献の証 10個/);
+    assert.match(await page.locator('#search-assist-content').textContent(), /精錬値8以上/);
+    assert.equal(await page.locator('.assist-candidates a').getAttribute('href'), 'https://asgrcat.github.io/jro-search/items/?id=4879');
+    assert.equal(await page.locator('.assist-candidates img').count(), 0, 'candidate names must be text, not HTML');
+    await page.screenshot({ path: resolve(screenshotDir, 'search-assist.png'), fullPage: true });
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/502/'));
+    await page.waitForFunction(() => document.getElementById('search-assist-content').textContent.includes('エンチャント情報はJRO Searchに登録されていません'));
+    await page.evaluate(() => window.__setActiveUrl('https://example.com/'));
+    await page.waitForFunction(() => document.getElementById('search-assist-content').textContent.includes('公式のアイテム詳細ページを開くと'));
+    assistFailure = true;
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/'));
+    await page.waitForSelector('#search-assist-retry:visible');
+    assistFailure = false;
+    await page.locator('#search-assist-retry').click();
+    await page.waitForSelector('.assist-set');
     for (const width of [320, 360, 418]) {
         await page.setViewportSize({ width, height: 850 });
-        for (const name of ['money', 'favorites', 'history', 'updates']) {
+        for (const name of ['money', 'favorites', 'history', 'search-assist', 'updates']) {
             await tab(name);
             const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scroll: document.documentElement.scrollWidth }));
             assert.ok(dimensions.scroll <= dimensions.width, `${name} overflows at ${width}px: ${JSON.stringify(dimensions)}`);
@@ -250,7 +290,7 @@ try {
                         return bounds.left >= rect.left && bounds.right <= rect.right;
                     }) };
             }));
-            assert.equal(tabs.length, 4);
+            assert.equal(tabs.length, 5);
             assert.equal(new Set(tabs.map((entry) => entry.top)).size, 1, `tabs wrap at ${width}px`);
             assert.ok(tabs.every((entry) => entry.contentsFit && entry.left >= 0 && entry.right <= width), `tab text overflows at ${width}px`);
         }
@@ -268,7 +308,7 @@ try {
     assert.deepEqual(pageErrors, []);
     assert.deepEqual(failedRequests, []);
     console.log(JSON.stringify({ result: 'passed', mode: 'Mac Chrome Headless / mocked extension APIs', screenshots: screenshotDir,
-        checks: ['four tabs', 'both type filters', 'name-only card content', 'search link and new tab', 'hover/keyboard action tooltips', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
+        checks: ['five tabs', 'enchantment display and page tracking', 'safe candidate text', 'fetch failure and retry', 'both type filters', 'name-only card content', 'search link and new tab', 'hover/keyboard action tooltips', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
 } catch (error) {
     await page.screenshot({ path: resolve(screenshotDir, 'failure.png'), fullPage: true }).catch(() => {});
     console.error(`Failure screenshot: ${screenshotDir}/failure.png`);
