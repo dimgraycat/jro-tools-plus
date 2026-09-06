@@ -5,9 +5,9 @@ import {
 import { LibraryViewFilter, parseVersionHistory, selectLibraryEntries } from '../lib/library-view.js';
 
 type LibraryTab = 'favorites' | 'history';
-const filters: Record<LibraryTab, LibraryViewFilter> = {
-    favorites: { type: 'all', query: '', setId: '' },
-    history: { type: 'all', query: '', setId: '' },
+const filters: Record<LibraryTab, LibraryViewFilter & { type: EntryType }> = {
+    favorites: { type: 'item', query: '', setId: '' },
+    history: { type: 'item', query: '', setId: '' },
 };
 let state: PersonalLibrary = normalizeLibrary(null);
 let currentEntry: LibraryEntry | null = null;
@@ -98,7 +98,7 @@ function renderCard(entry: LibraryEntry, tab: LibraryTab | 'current', setId = ''
 
 function renderSetFilter(): void {
     const select = document.getElementById('favorites-set') as HTMLSelectElement;
-    const matching = (state.sets ?? []).filter((set) => filters.favorites.type === 'all' || set.type === filters.favorites.type);
+    const matching = (state.sets ?? []).filter((set) => set.type === filters.favorites.type);
     if (!matching.some((set) => `${set.type}:${set.id}` === select.value)) {
         filters.favorites.setId = '';
         filters.favorites.setType = undefined;
@@ -205,7 +205,7 @@ async function initialize(): Promise<void> {
     document.querySelectorAll<HTMLButtonElement>('[data-library][data-filter]').forEach((button) => {
         button.addEventListener('click', () => {
             const tab = button.dataset.library as LibraryTab;
-            filters[tab].type = button.dataset.filter as LibraryViewFilter['type'];
+            filters[tab].type = button.dataset.filter as EntryType;
             document.querySelectorAll<HTMLButtonElement>(`[data-library="${tab}"]`).forEach((candidate) => {
                 candidate.setAttribute('aria-pressed', String(candidate === button));
             });

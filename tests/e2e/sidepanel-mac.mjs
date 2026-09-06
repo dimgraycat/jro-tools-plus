@@ -107,13 +107,17 @@ try {
     await tab('money');
     assert.equal(await page.locator('#zeny-crawl-button').isDisabled(), true);
     await tab('favorites');
-    await count('favorites', 2);
+    assert.equal(await page.locator('[data-library][data-filter="all"]').count(), 0);
+    assert.equal(await page.locator('[data-library="favorites"]').count(), 2);
+    assert.equal(await page.locator('[data-library="history"]').count(), 2);
+    await count('favorites', 1);
+    assert.equal(await page.locator('[data-library="favorites"][data-filter="item"]').getAttribute('aria-pressed'), 'true');
     await filter('favorites', 'item', 1);
     await filter('favorites', 'monster', 1);
-    await filter('favorites', 'all', 2);
     await page.selectOption('#favorites-set', 'monster:default');
     await count('favorites', 1);
     assert.equal(await page.locator('#favorites-list .library-name').textContent(), 'ポリン');
+    await filter('favorites', 'item', 1);
     await page.selectOption('#favorites-set', 'item:wanted');
     await count('favorites', 1);
     await page.locator('#favorites-list button').click();
@@ -123,10 +127,10 @@ try {
     assert.equal(action.setId, 'wanted');
     assert.equal(action.favorite, false);
     await page.selectOption('#favorites-set', '');
-    await count('favorites', 2); // Membership remains in the default set.
+    await count('favorites', 1); // Membership remains in the item default set.
     await page.locator('[data-current-entry] select').selectOption('wanted');
     await page.locator('[data-current-entry] button').click();
-    await count('favorites', 3);
+    await count('favorites', 2);
     action = await page.evaluate(() => window.__libraryActions.at(-1));
     assert.equal(action.setId, 'wanted');
     assert.equal(action.entry.id, '502');
@@ -136,13 +140,14 @@ try {
     await page.screenshot({ path: resolve(screenshotDir, 'favorites.png'), fullPage: true });
     await page.locator('#favorites-query').fill('');
     await tab('history');
-    await count('history', 3);
+    await count('history', 2);
+    assert.equal(await page.locator('[data-library="history"][data-filter="item"]').getAttribute('aria-pressed'), 'true');
     await filter('history', 'item', 2);
     await filter('history', 'monster', 1);
-    await filter('history', 'all', 3);
     await page.locator('#history-query').fill('ポリン');
     await count('history', 1);
     await page.locator('#history-query').fill('');
+    await filter('history', 'item', 2);
     await page.locator('#history-list button').first().click();
     action = await page.evaluate(() => window.__libraryActions.at(-1));
     assert.equal(action.favorite, false);
