@@ -20,8 +20,7 @@
 .library-content { flex: 1; min-width: 0; }
 .library-name { color: #1d4ed8; font-size: 14px; overflow-wrap: anywhere; }
 .library-name:hover { text-decoration: underline; }
-.library-meta { font-size: 12px; color: #6b7280; margin-top: 5px; }
-.library-favorite { flex-shrink: 0; width: 36px; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; color: #6b7280; background: white; }
+.library-favorite { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; font-size: 24px; line-height: 1; border: 1px solid #e5e7eb; border-radius: 6px; color: #6b7280; background: white; }
 .library-favorite[aria-pressed="true"] { color: #be185d; background: #fdf2f8; border-color: #fbcfe8; }
 .library-empty { color: #6b7280; font-size: 14px; padding: 20px 4px; line-height: 1.7; }
 .current-entry { font-size: 13px; color: #6b7280; }

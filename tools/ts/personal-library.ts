@@ -69,18 +69,6 @@ function renderCard(entry: LibraryEntry, tab: LibraryTab | 'current', setId = ''
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     content.append(link);
-    const details = [typeName(entry.type)];
-    if (tab === 'history' && entry.viewedAt > 0) {
-        details.push(new Date(entry.viewedAt).toLocaleString('ja-JP', {
-            month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
-        }));
-    }
-    if (tab === 'favorites') {
-        const names = (state.sets ?? []).filter((set) => set.type === entry.type && entry.setIds?.includes(set.id))
-            .map((set) => set.name);
-        if (names.length) details.push(names.join('・'));
-    }
-    content.append(element('p', 'library-meta', details.join(' · ')));
     const favorite = selectedFavorite(entry, setId);
     const button = element('button', 'library-favorite', favorite ? '♥' : '♡');
     button.type = 'button';

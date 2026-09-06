@@ -99,6 +99,17 @@ try {
     const count = async (name, expected) => {
         await page.waitForFunction(({ name, expected }) => document.getElementById(`${name}-count`).textContent === `${expected}件`, { name, expected });
         assert.equal(await page.locator(`#${name}-list > li`).count(), expected);
+        assert.equal(await page.locator(`#${name}-list .library-content > :not(a.library-name)`).count(), 0,
+            `${name} cards must not render a type, set name, or date row`);
+        assert.equal(await page.locator(`#${name}-list .library-name`).count(), expected);
+        const buttons = await page.locator(`#${name}-list .library-favorite`).evaluateAll((nodes) => nodes.map((node) => {
+            const style = getComputedStyle(node);
+            return { fontSize: style.fontSize, width: style.width, height: style.height,
+                align: style.alignItems, justify: style.justifyItems };
+        }));
+        assert.ok(buttons.every((button) => button.fontSize === '24px' && button.width === '36px'
+            && button.height === '36px' && button.align === 'center' && button.justify === 'center'),
+        `${name} favorite icons must be enlarged and centered in the existing button`);
     };
     const filter = async (name, type, expected) => {
         await page.locator(`[data-library="${name}"][data-filter="${type}"]`).click();
@@ -188,7 +199,7 @@ try {
     assert.deepEqual(pageErrors, []);
     assert.deepEqual(failedRequests, []);
     console.log(JSON.stringify({ result: 'passed', mode: 'Mac Chrome Headless / mocked extension APIs', screenshots: screenshotDir,
-        checks: ['four tabs', 'both type filters', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
+        checks: ['four tabs', 'both type filters', 'name-only card content', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
 } catch (error) {
     await page.screenshot({ path: resolve(screenshotDir, 'failure.png'), fullPage: true }).catch(() => {});
     console.error(`Failure screenshot: ${screenshotDir}/failure.png`);
