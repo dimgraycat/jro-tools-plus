@@ -192,7 +192,11 @@ production build は次のコマンドです。
 mise exec -- npm run build
 ```
 
-build 出力先は `dist/` です。webpack は次の入力を entry として扱います。
+build 出力先は `dist/` です。production build の生成物は Git 管理し、ソース変更時は再ビルドした `dist/` も同じコミットに含めます。開発用 build の生成物はコミット前に production build で置き換えます。
+
+このブランチを取得すると、ローカルでビルドせずに Chrome の拡張機能管理画面でデベロッパーモードを有効にし、「パッケージ化されていない拡張機能を読み込む」から `dist/` を選択できます。
+
+webpack は次の入力を entry として扱います。
 
 - `content_scripts/scripts/*.ts`
 - `tools/ts/*.ts`

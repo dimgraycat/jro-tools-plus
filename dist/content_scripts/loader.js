@@ -1,0 +1,1 @@
+(()=>{"use strict";const e=new URL(location.href);[{domain:"rotool.gungho.jp",regex:/^\/(monster|map)\/.*/g,js:[]}].forEach(t=>{e.host===t.domain&&e.pathname.match(t.regex)&&t.js.forEach(e=>{const t=document.createElement("script");t.setAttribute("src",chrome.runtime.getURL(e)),document.body?.appendChild(t)})})})();

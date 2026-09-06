@@ -6,7 +6,7 @@ npm-debug.log
 yarn-error.log
 
 .test-build/
-dist/
+# Production build in dist/ is tracked for loading the unpacked extension.
 packages/
 
 # Local Codex handoff notes. This is an autonomous Markdown workspace and must
