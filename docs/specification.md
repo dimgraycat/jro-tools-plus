@@ -4,10 +4,11 @@
 
 JRO Tools Plus は JRO 公式系サイト向けの Chrome Extension です。
 
-主な役割は次の 2 つです。
+主な役割は次の通りです。
 
 - `https://rotool.gungho.jp/*` 上で、モンスター・マップ検索結果のドロップ率表示を補助する
 - 拡張機能の Side Panel から、キャラクター情報ページを起点に所持 Zeny 情報を収集・保存・表示する
+- 公式アイテム・モンスターの閲覧履歴とお気に入りを保存し、JRO Searchと共有する
 
 ## Chrome Extension 設定
 
@@ -19,9 +20,12 @@ Manifest は `public/manifest.json` で管理します。
 - Background service worker: `background/service-worker.js`
 - Content script 対象:
   - `https://rotool.gungho.jp/*`
+  - `https://asgrcat.github.io/jro-search/items/*`
+  - `https://asgrcat.github.io/jro-search/monsters/*`
 - Content script 実行タイミング: `document_end`
 - Content script 出力:
   - `content_scripts/loader.js`
+  - `content_scripts/web-library-bridge.js`
   - `css/jro_tools_plus.min.css`
 
 要求権限は次の通りです。
@@ -34,6 +38,8 @@ Manifest は `public/manifest.json` で管理します。
 Host permissions は次の通りです。
 
 - `https://rowebtool.gungho.jp/*`: Side Panel を先に開いた後でキャラクター情報ページへ切り替えた場合でも、対象タブの URL 判定と scraper 注入を実行する
+- `https://rotool.gungho.jp/*`: 現在の公式詳細ページを判定する
+- `https://asgrcat.github.io/*`: 公開検索ページとの共有と、公開アイテム・モンスター名の取得に使用する
 
 `web_accessible_resources` では次のリソースを JRO 公式系ドメインから参照可能にします。
 
@@ -79,6 +85,11 @@ Side Panel の HTML は `tools/sidepanel.html` です。拡張機能アイコン
 Side Panel のヘッダーにはページ切り替えメニューを表示します。
 
 - `所持Zeny`: 所持 Zeny 収集画面
+- `お気に入り`: 保存済みの一覧・名前検索・セット絞り込み・現在の公式ページの登録／解除
+- `閲覧履歴`: 最近開いた公式詳細・Webプレビューの一覧とお気に入り操作
+- `更新履歴`: 同梱した `public/data/version-history.json` とインストール済みの固定バージョンを表示
+
+お気に入りと閲覧履歴は、それぞれ独立した `すべて` / `アイテム` / `モンスター` の対象切り替えを持ちます。リンクは公式詳細ページを新しいタブで開きます。公式ページの詳細本文はSide Panelへ複製しません。
 
 旧 popup 用の HTML として `tools/index.html` も残していますが、Manifest の `action.default_popup` は使いません。
 
@@ -151,6 +162,7 @@ Scraper は `tools/ts/zeny-characterpage-scraper.ts` です。対象ページの
 | `zenyDisplayPreference` | Zeny 表示形式。`full` または `short` |
 | `zenyCrawlLastUpdatedTimestamp` | 前回取得日時の Unix epoch milliseconds |
 | `zenyCrawlResultsData` | 収集したキャラクター別 Zeny 情報の配列 |
+| `jro-tools-plus.personalLibrary` | 型別のセット・お気に入り・閲覧履歴、更新順序と同期世代 |
 
 `zenyCrawlResultsData` の要素は次の形です。
 
@@ -163,6 +175,36 @@ interface CharacterDetail {
   zeny?: string;
 }
 ```
+
+## お気に入り・閲覧履歴の共有
+
+共有の対象は、同じChromeプロファイルで利用している拡張機能と公開JRO Searchです。別端末・別プロファイルへのクラウド同期は行いません。Zeny・キャラクター情報は共有しません。
+
+- 公式のアイテム・モンスター詳細をトップフレームで開いたときだけ閲覧を記録します。Chrome全体の履歴権限は要求しません。
+- 履歴は種類ごとに最新50件。同じ対象の再訪問は重複追加せず先頭へ移します。
+- 既存のWebお気に入りセットと所属を取り込みます。Side Panelからセットを選んで登録・解除できます。セットの作成・名前変更・削除はWeb側で行います。
+- 最後に確認したWeb状態との差分を適用し、古いタブが変更していないデータで最新状態を上書きしないようにします。
+- 同期世代 `syncId` が変わった場合は初回取り込みとして扱い、再インストールや拡張機能の保存領域初期化によってWeb側の既存データが消えることを防ぎます。
+- Webの変更イベントと拡張機能の保存変更イベントで反映します。旧Web版には1.5秒間隔の変更検出も使います（画面の即時更新にはWeb側の対応が必要です）。
+- Webを開いていないときも拡張機能は単独で保存・表示できます。次回Webを開いたときに共有します。拡張機能がない場合もWeb単独で利用できます。
+- 拡張機能の無効化・更新による通信切断や壊れたJSONでは保存データを消去せず、エラーを画面やコンソールへ出しません。拡張機能を再度有効にした後はWebタブを再読み込みしてください。
+- 名前取得が失敗した場合も既知の名前またはIDで利用を続けます。保存内容を外部サーバーへ送信しません。
+
+### ディレクトリとテスト境界
+
+| 場所 | 責務 |
+| --- | --- |
+| `tools/lib/personal-library.ts` | URL検証、正規化、履歴・お気に入りの純粋な更新処理 |
+| `tools/lib/web-sync.ts` | Web保存形式と拡張機能形式の変換、差分マージ |
+| `tools/lib/library-view.ts` | 一覧の絞り込み、更新履歴の読み取り |
+| `background/lib/personal-library.ts` | 送信元検証、Chrome保存API、更新の直列化 |
+| `content_scripts/scripts/web-library-bridge.ts` | WebのlocalStorageと拡張機能の通信 |
+| `tools/ts/personal-library.ts` | Side PanelのDOM描画と操作 |
+| `tests/*.test.ts` | 純粋処理・Chrome APIモック・配布bundleの通信障害テスト |
+
+ブラウザ依存処理を純粋なデータ処理から分離します。同期ブリッジのテストは実際の配布bundleを使うため、最終検証は `npm run build` の後に `npm test` を実行します。
+
+`node tests/e2e/sidepanel-mac.mjs` は、逆トンネル先のMac Chrome HeadlessでSide Panel画面を確認します。Playwrightを別環境に配置している場合は `JRO_PLAYWRIGHT_MODULE` にそのモジュールの絶対パスを指定できます。このテストはChrome APIを模擬しており、実際にインストールした拡張機能の連携テストではありません。
 
 ## Zeny 表示形式
 
@@ -237,9 +279,9 @@ mise exec -- npm run bump -- 2026.9.2
 
 ```sh
 mise exec -- npm ci
+mise exec -- npm run build
 mise exec -- npm test
 mise exec -- npm audit --audit-level=low
-mise exec -- npm run build
 ```
 
 release 設定に影響する変更では次も確認します。

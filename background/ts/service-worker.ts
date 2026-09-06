@@ -1,3 +1,5 @@
+import '../lib/personal-library.js';
+
 type SidePanelOpenInfo = {
     path: string;
     tabId?: number;

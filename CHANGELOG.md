@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## 2026.9.1 (2026-09-06)
 
+* お気に入り・閲覧履歴・更新履歴のSide Panelタブと、アイテム／モンスターの対象切り替えを追加
+* JRO Searchとお気に入りセット・閲覧履歴を同じChromeプロファイル内で共有
 * バージョン形式を4桁の年・月・その月の更新回数に変更
 * Side Panel対応とZeny取得中の注意文の先頭行表示を含むビルド済み拡張機能を収録
 

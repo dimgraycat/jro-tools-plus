@@ -1,2 +1,30 @@
 @import "@fortawesome/fontawesome-free/css/all.css";
 @import "tailwindcss";
+
+.panel-tabs a { white-space: nowrap; }
+.panel-tabs a:focus-visible, .library-filters button:focus-visible, .library-favorite:focus-visible {
+  outline: 2px solid #2563eb; outline-offset: 2px;
+}
+.library-filters { display: flex; gap: 6px; margin-bottom: 12px; }
+.library-filters button { flex: 1; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; font-size: 13px; background: white; }
+.library-filters button[aria-pressed="true"] { color: #1d4ed8; border-color: #2563eb; background: #eff6ff; }
+.library-query { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; background: white; margin-bottom: 12px; font-size: 14px; }
+.library-query:focus { outline: 2px solid #2563eb; outline-offset: 1px; }
+.library-list { display: grid; gap: 8px; }
+.library-card { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+.library-content { flex: 1; min-width: 0; }
+.library-name { color: #1d4ed8; font-size: 14px; overflow-wrap: anywhere; }
+.library-name:hover { text-decoration: underline; }
+.library-meta { font-size: 12px; color: #6b7280; margin-top: 5px; }
+.library-favorite { flex-shrink: 0; width: 36px; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; color: #6b7280; background: white; }
+.library-favorite[aria-pressed="true"] { color: #be185d; background: #fdf2f8; border-color: #fbcfe8; }
+.library-empty { color: #6b7280; font-size: 14px; padding: 20px 4px; line-height: 1.7; }
+.current-entry { font-size: 13px; color: #6b7280; }
+.current-entry .library-card { margin-top: 6px; }
+.library-set-label { display: block; margin-top: 8px; }
+.library-set-label select { display: block; margin-top: 4px; margin-bottom: 0; }
+.library-favorite:disabled { opacity: .5; cursor: wait; }
+.extension-update { border-top: 1px solid #e5e7eb; padding: 16px 0; }
+.extension-update h3 { font-weight: 600; }
+.extension-update time { color: #6b7280; font-size: 12px; }
+.extension-update ul { list-style: disc; padding-left: 20px; margin-top: 8px; font-size: 14px; line-height: 1.8; }

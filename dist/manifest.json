@@ -21,6 +21,11 @@
             "css": [
                 "css/jro_tools_plus.min.css"
             ]
+        },
+        {
+            "run_at": "document_idle",
+            "matches": ["https://asgrcat.github.io/jro-search/items/*", "https://asgrcat.github.io/jro-search/monsters/*"],
+            "js": ["content_scripts/web-library-bridge.js"]
         }
     ],
     "action": {
@@ -41,6 +46,8 @@
         "scripting"
     ],
     "host_permissions": [
+        "https://asgrcat.github.io/*",
+        "https://rotool.gungho.jp/*",
         "https://rowebtool.gungho.jp/*"
     ],
     "web_accessible_resources": [

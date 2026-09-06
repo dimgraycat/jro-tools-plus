@@ -222,8 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
             link.classList.remove('text-blue-600', 'font-semibold');
             li.classList.add('border-transparent');
             link.classList.add('text-gray-700');
+            link.removeAttribute('aria-current');
 
             if (linkHref === currentHash) {
+                link.setAttribute('aria-current', 'page');
                 li.classList.add('bg-gray-100', 'border-blue-500');
                 link.classList.add('text-blue-600', 'font-semibold');
                 li.classList.remove('border-white', 'border-transparent');

@@ -10,12 +10,21 @@
   <div class="min-h-screen min-w-80">
     <header class="sticky top-0 z-10 bg-white border-b px-4 py-2">
       <nav>
-        <ul class="grid grid-cols-1 gap-2 text-sm">
+        <ul class="panel-tabs grid grid-cols-2 gap-1 text-sm" aria-label="機能切り替え">
           <li class="js-menu-money border-b-2 border-transparent rounded">
             <a href="#money" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700">
               <i class="fa-solid fa-money-check-dollar" aria-hidden="true"></i>
               <span>所持Zeny</span>
             </a>
+          </li>
+          <li class="js-menu-favorites border-b-2 border-transparent rounded">
+            <a href="#favorites" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700"><i class="fa-regular fa-heart" aria-hidden="true"></i><span>お気に入り</span></a>
+          </li>
+          <li class="js-menu-history border-b-2 border-transparent rounded">
+            <a href="#history" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><span>閲覧履歴</span></a>
+          </li>
+          <li class="js-menu-updates border-b-2 border-transparent rounded">
+            <a href="#updates" class="flex items-center justify-center gap-2 px-3 py-2 text-gray-700"><i class="fa-solid fa-list" aria-hidden="true"></i><span>更新履歴</span></a>
           </li>
         </ul>
       </nav>
@@ -53,9 +62,49 @@
       </section>
     </main>
 
+    <main id="favorites" class="p-4 js-pages-favorites hidden break-words">
+      <h2 class="text-xl font-bold mb-3">お気に入り</h2>
+      <div class="current-entry mb-4" data-current-entry></div>
+      <div class="library-filters" role="group" aria-label="お気に入りの対象">
+        <button type="button" data-library="favorites" data-filter="all" aria-pressed="true">すべて</button>
+        <button type="button" data-library="favorites" data-filter="item" aria-pressed="false">アイテム</button>
+        <button type="button" data-library="favorites" data-filter="monster" aria-pressed="false">モンスター</button>
+      </div>
+      <label class="sr-only" for="favorites-query">お気に入りを名前で絞り込む</label>
+      <input id="favorites-query" class="library-query" type="search" placeholder="お気に入りを名前で絞り込む" autocomplete="off">
+      <label class="sr-only" for="favorites-set">お気に入りセット</label>
+      <select id="favorites-set" class="library-query"><option value="">すべてのセット</option></select>
+      <p id="favorites-count" class="text-xs text-gray-500 mb-2" aria-live="polite"></p>
+      <ul id="favorites-list" class="library-list" aria-label="お気に入り一覧"></ul>
+      <p id="favorites-empty" class="library-empty" hidden></p>
+    </main>
+
+    <main id="history" class="p-4 js-pages-history hidden break-words">
+      <h2 class="text-xl font-bold mb-3">閲覧履歴</h2>
+      <div class="library-filters" role="group" aria-label="閲覧履歴の対象">
+        <button type="button" data-library="history" data-filter="all" aria-pressed="true">すべて</button>
+        <button type="button" data-library="history" data-filter="item" aria-pressed="false">アイテム</button>
+        <button type="button" data-library="history" data-filter="monster" aria-pressed="false">モンスター</button>
+      </div>
+      <label class="sr-only" for="history-query">閲覧履歴を名前で絞り込む</label>
+      <input id="history-query" class="library-query" type="search" placeholder="閲覧履歴を名前で絞り込む" autocomplete="off">
+      <p id="history-count" class="text-xs text-gray-500 mb-2" aria-live="polite"></p>
+      <ul id="history-list" class="library-list" aria-label="閲覧履歴一覧"></ul>
+      <p id="history-empty" class="library-empty" hidden></p>
+    </main>
+
+    <main id="updates" class="p-4 js-pages-updates hidden break-words">
+      <h2 class="text-xl font-bold mb-2">JRO Tools Plus 更新履歴</h2>
+      <p id="extension-version" class="text-sm text-gray-600 mb-4"></p>
+      <div id="extension-updates"></div>
+    </main>
+
+    <p id="library-error" class="px-4 pb-4 text-sm text-red-500" role="alert" hidden></p>
+
   </div>
 
   <script src="./js/jro-tools-settings.js"></script>
   <script src="./js/zeny-characterpage-scraper.js"></script>
+  <script src="./js/personal-library.js"></script>
 </body>
 </html>
