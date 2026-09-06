@@ -491,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function collectCharacterDetails(tabId: number): Promise<CharacterDetail[] | null> {
-        setZenyStatus('対象ページでワールドリストを取得中... 完了まで対象タブを閉じないでください', 'text-yellow-600');
+        setZenyStatus('対象タブを閉じないでください\n対象ページでワールドリストを取得中...', 'text-yellow-600');
         await injectZenyScraper(tabId);
 
         const worldOptions = await fetchWorldOptions(tabId);
@@ -507,12 +507,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const allCharacterDetails: CharacterDetail[] = [];
         for (const world of worldOptions) {
-            setZenyStatus(`${world.text} のキャラクターURLリストを収集中... 対象タブを閉じないでください`, 'text-yellow-600');
+            setZenyStatus(`対象タブを閉じないでください\n${world.text} のキャラクターURLリストを収集中...`, 'text-yellow-600');
             const characterPageLinks = await fetchCharacterPageLinks(tabId, world);
             if (!characterPageLinks) continue;
 
             for (const pageLink of characterPageLinks) {
-                setZenyStatus(`${pageLink.text} - ${formatStatusUrl(pageLink.href)} から取得中... 対象タブを閉じないでください`, 'text-yellow-600');
+                setZenyStatus(`対象タブを閉じないでください\n${pageLink.text} - ${formatStatusUrl(pageLink.href)} から取得中...`, 'text-yellow-600');
                 const detail = await fetchCharacterDetail(tabId, pageLink);
                 allCharacterDetails.push(detail ?? { ...pageLink, characterName: '取得失敗', zeny: '取得失敗' });
             }
@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (zenyCrawlButton.disabled) return;
 
         let shouldRefreshAfterCrawl = true;
-        setZenyStatus('情報収集中... 完了まで対象タブを閉じないでください', 'text-yellow-600');
+        setZenyStatus('対象タブを閉じないでください\n情報収集中...', 'text-yellow-600');
         setZenyButtonEnabled(false);
         zenyCrawlResultsOutput.textContent = '';
 
