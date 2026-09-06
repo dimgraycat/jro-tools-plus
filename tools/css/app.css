@@ -1,9 +1,11 @@
 @import "@fortawesome/fontawesome-free/css/all.css";
 @import "tailwindcss";
 
-.panel-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; font-size: 14px; }
+/* Keep the header width unchanged when switching between short and scrollable pages. */
+html { scrollbar-gutter: stable; }
+.panel-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; font-size: 14px; }
 .panel-tabs a { white-space: nowrap; gap: 4px; padding: 8px 2px; }
-.panel-subtabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 8px; }
+.panel-subtabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 8px; }
 .panel-subtabs a { display: block; padding: 8px 2px; text-align: center; white-space: nowrap; font-size: 13px; }
 #search-subnav[hidden] { display: none; }
 .panel-subtabs a:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }

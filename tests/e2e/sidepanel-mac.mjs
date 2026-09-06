@@ -289,6 +289,8 @@ try {
     await page.waitForSelector('.assist-set');
     for (const width of [320, 360, 418]) {
         await page.setViewportSize({ width, height: 850 });
+        let parentWidths;
+        let childWidths;
         for (const name of ['money', 'favorites', 'history', 'search-assist', 'updates']) {
             await tab(name);
             const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scroll: document.documentElement.scrollWidth }));
@@ -302,6 +304,9 @@ try {
                     }) };
             }));
             assert.equal(tabs.length, 3);
+            const widths = tabs.map((entry) => entry.right - entry.left);
+            if (!parentWidths) parentWidths = widths;
+            assert.deepEqual(widths, parentWidths, 'parent widths must not change with selection');
             assert.equal(new Set(tabs.map((entry) => entry.top)).size, 1, `tabs wrap at ${width}px`);
             assert.ok(tabs.every((entry) => entry.contentsFit && entry.left >= 0 && entry.right <= width), `tab text overflows at ${width}px`);
             if (['search-assist', 'favorites', 'history'].includes(name)) {
@@ -310,12 +315,22 @@ try {
                     return { top: box.top, right: box.right, width: box.width, scroll: node.scrollWidth };
                 }));
                 assert.equal(childTabs.length, 3);
+                const widths = childTabs.map((child) => child.width);
+                if (!childWidths) childWidths = widths;
+                assert.deepEqual(widths, childWidths, 'child widths must not change with selection');
                 assert.equal(new Set(childTabs.map((child) => child.top)).size, 1);
                 assert.ok(childTabs.every((child) => child.top > tabs[0].top && child.right <= width && child.scroll <= child.width + 1));
             }
         }
         await page.locator('header').screenshot({ path: resolve(screenshotDir, `tabs-${width}.png`) });
     }
+    await tab('money');
+    const headerWidth = await page.locator('header').evaluate((node) => node.getBoundingClientRect().width);
+    await page.locator('#money').evaluate((node) => { node.style.minHeight = '2000px'; });
+    assert.equal(await page.locator('header').evaluate((node) => node.getBoundingClientRect().width), headerWidth,
+        'showing the vertical scrollbar must not resize the header');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollbarGutter), 'stable');
+    await page.locator('#money').evaluate((node) => { node.style.minHeight = ''; });
     await tab('favorites');
     await page.evaluate(() => {
         // State updates must still reach the selected nested page.
