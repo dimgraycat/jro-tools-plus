@@ -34,6 +34,15 @@ try {
         '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.png': 'image/png' };
     await context.route('**/*', async (route) => {
         const url = new URL(route.request().url());
+        if (url.pathname.endsWith('/item-enchantment-targets.json')) {
+            return route.fulfill({ json: { items: [{ item_id: '15424', sets: [{ slots: [
+                { candidates: [{ item_id: '4879', name: '大鷲の眼光' }] },
+                { candidates: [{ item_id: '4879', name: '大鷲の眼光' }] },
+            ] }] }] } });
+        }
+        if (url.pathname.endsWith('/name-map.json')) {
+            return route.fulfill({ json: { '15424': '天蝎宮のメイル[1]' } });
+        }
         if (url.pathname.includes('/data/search/item-details/')) {
             ++assistRequests;
             if (assistFailure) return route.fulfill({ status: 503, body: 'Unavailable' });
@@ -42,7 +51,7 @@ try {
                 fee: [{ item_name: '迷宮調査貢献の証', amount: 10 }],
                 slots: [{ slot_label: '第4スロット', required_refine: '精錬値8以上',
                     candidates: [{ name: '大鷲の眼光', item_id: '4879' }, { name: '<img src=x onerror=alert(1)>' }] }],
-            }] } }, { item_id: '502', name: '青ポーション' }] } });
+            }] } }, { item_id: '502', name: '青ポーション' }, { item_id: '4879', name: '大鷲の眼光' }] } });
         }
         // Destination tabs are placeholders: verify actual link navigation without loading external sites.
         if (['https://asgrcat.github.io', 'https://rotool.gungho.jp'].includes(url.origin)) {
@@ -278,6 +287,13 @@ try {
     assert.equal(await page.locator('.assist-candidates a').getAttribute('href'), 'https://asgrcat.github.io/jro-search/items/?id=4879');
     assert.equal(await page.locator('.assist-candidates img').count(), 0, 'candidate names must be text, not HTML');
     await page.screenshot({ path: resolve(screenshotDir, 'search-assist.png'), fullPage: true });
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/4879/0/'));
+    await page.waitForSelector('.assist-targets');
+    assert.equal(await page.locator('.assist-targets li').count(), 1);
+    assert.equal(await page.locator('.assist-targets a').textContent(), '天蝎宮のメイル[1]');
+    assert.equal(await page.locator('.assist-targets a').getAttribute('href'), 'https://asgrcat.github.io/jro-search/items/?id=15424');
+    assert.equal(await page.locator('.assist-set').count(), 0);
+    await page.screenshot({ path: resolve(screenshotDir, 'enchantment-targets.png'), fullPage: true });
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/502/'));
     await page.waitForFunction(() => document.getElementById('search-assist-content').textContent.includes('エンチャント情報はJRO Searchに登録されていません'));
     await page.evaluate(() => window.__setActiveUrl('https://example.com/'));

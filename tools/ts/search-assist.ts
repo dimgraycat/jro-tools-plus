@@ -1,6 +1,8 @@
 import { entryFromUrl } from '../lib/personal-library.js';
 import { AssistItem, loadAssistItem } from '../lib/search-assist.js';
 import { searchUrl } from '../lib/web-sync.js';
+import { createTargetLoader } from '../lib/enchantment-targets.js';
+import { AssistCandidate } from '../lib/search-assist.js';
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, text = '', className = ''): HTMLElementTagNameMap[K] {
     const element = document.createElement(tag);
@@ -18,11 +20,23 @@ function itemLink(name: string, id: string): HTMLAnchorElement {
     return link;
 }
 
-function renderItem(item: AssistItem, container: HTMLElement): void {
+function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCandidate[] = []): void {
     const title = node('h3', '', 'assist-item-name');
     title.append(itemLink(item.name, item.id));
     container.append(title);
-    if (!item.sets.length) {
+    if (targets.length) {
+        const section = node('section', '', 'assist-targets');
+        section.append(node('h4', `エンチャント可能な装備（${targets.length}件）`, 'assist-item-name'));
+        const list = node('ul', '', 'library-list');
+        for (const target of targets) {
+            const row = node('li', '', 'library-card');
+            row.append(itemLink(target.name, target.id));
+            list.append(row);
+        }
+        section.append(list);
+        container.append(section);
+    }
+    if (!item.sets.length && !targets.length) {
         container.append(node('p', 'このアイテムのエンチャント情報はJRO Searchに登録されていません。'));
     }
     for (const set of item.sets) {
@@ -53,6 +67,7 @@ function initialize(): void {
     if (!container || !retry) return;
     let revision = 0;
     let controller: AbortController | undefined;
+    const loadTargets = createTargetLoader();
     const refresh = async () => {
         const token = ++revision;
         controller?.abort();
@@ -73,11 +88,15 @@ function initialize(): void {
             const requestController = controller;
             const timeout = setTimeout(() => requestController.abort(), 10000);
             let item: AssistItem | null;
-            try { item = await loadAssistItem(entry.id, requestController.signal); }
+            let targets: AssistCandidate[] = [];
+            try {
+                item = await loadAssistItem(entry.id, requestController.signal);
+                if (item) targets = await loadTargets(item, requestController.signal);
+            }
             finally { clearTimeout(timeout); }
             if (token !== revision) return;
             container.replaceChildren();
-            if (item) renderItem(item, container);
+            if (item) renderItem(item, container, targets);
             else container.append(node('p', 'このアイテムはJRO Searchにまだ登録されていません。'));
         } catch {
             if (token !== revision) return;
