@@ -40,11 +40,22 @@ describe('official library URLs', () => {
       'https://rowebtool.gungho.jp/item/501/',
       'https://rotool.gungho.jp/item/',
       'https://rotool.gungho.jp/item/501/extra/',
+      'https://rotool.gungho.jp/item/501/0/extra/',
+      'https://rotool.gungho.jp/item/501/-1/',
+      'https://rotool.gungho.jp/monster/1002/0/',
       'https://rotool.gungho.jp/item/abc/',
       'https://rotool.gungho.jp/item/5%30%31/',
       'https://rotool.gungho.jp/monster/a%2Fb/',
       'https://rotool.gungho.jp/map/1002/',
     ]) assert.equal(entryFromUrl(url), null, url);
+  });
+
+  it('recognizes official item URLs with a numeric trailing segment as the same item', () => {
+    for (const suffix of ['/0/', '/0', '/1/', '/10/?from=search#detail']) {
+      const entry = entryFromUrl('https://rotool.gungho.jp/item/26165' + suffix, '装備', 123)!;
+      assert.deepEqual(entry, item('26165', 123, '装備'));
+      assert.equal(officialUrl(entry), 'https://rotool.gungho.jp/item/26165/');
+    }
   });
 
   it('uses the ID for unnamed entries and limits stored names', () => {

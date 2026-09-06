@@ -125,6 +125,17 @@ describe('personal library background requests', () => {
     assert.equal(storageWrites, 1);
   });
 
+  it('records trailing numeric item URLs without duplicating canonical history', async () => {
+    const entry = { type: 'item', id: '26165', name: '装備' };
+    for (const path of ['/item/26165/', '/item/26165/0/']) {
+      const response = await send({ type: 'library.visit', entry },
+        { id: extensionId, url: 'https://rotool.gungho.jp' + path, frameId: 0 });
+      assert.equal(response.ok, true);
+      assert.deepEqual(response.state?.history.map(value => value.id), ['26165']);
+    }
+    assert.equal(storageWrites, 2);
+  });
+
   it('returns a recoverable error for malformed updates without blocking the request queue', async () => {
     const invalid = await send({ ...favorite('501'), favorite: 'yes' });
     assert.equal(invalid.ok, false);

@@ -269,6 +269,8 @@ try {
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/'));
     await tab('search-assist');
     await page.waitForSelector('.assist-set');
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/0/'));
+    await page.waitForFunction(() => document.querySelector('.assist-item-name')?.textContent === '天蝎宮のメイル[1]');
     await page.locator('.assist-set summary').click();
     assert.match(await page.locator('#search-assist-content').textContent(), /迷宮調査貢献の証 10個/);
     assert.match(await page.locator('#search-assist-content').textContent(), /精錬値8以上/);

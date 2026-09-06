@@ -26,7 +26,9 @@ export function entryFromUrl(value: string, name = '', now = Date.now()): Librar
     try {
         const url = new URL(value);
         if (url.origin !== 'https://rotool.gungho.jp') return null;
-        const match = /^\/(item|monster)\/([A-Za-z0-9_]+)\/?$/.exec(url.pathname);
+        // Official item pages may include a trailing numeric page segment (e.g. /item/26165/0/).
+        const match = /^\/(item)\/(\d+)(?:\/\d+)?\/?$/.exec(url.pathname)
+            || /^\/(monster)\/([A-Za-z0-9_]+)\/?$/.exec(url.pathname);
         if (!match || (match[1] === 'item' && !/^\d+$/.test(match[2]))) return null;
         return {
             type: match[1] as EntryType,
