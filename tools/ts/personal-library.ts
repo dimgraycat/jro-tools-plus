@@ -3,6 +3,7 @@ import {
     normalizeLibrary, officialUrl,
 } from '../lib/personal-library.js';
 import { LibraryViewFilter, parseVersionHistory, selectLibraryEntries } from '../lib/library-view.js';
+import { searchUrl } from '../lib/web-sync.js';
 
 type LibraryTab = 'favorites' | 'history';
 const filters: Record<LibraryTab, LibraryViewFilter & { type: EntryType }> = {
@@ -69,6 +70,23 @@ function renderCard(entry: LibraryEntry, tab: LibraryTab | 'current', setId = ''
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     content.append(link);
+    const actions = element('div', 'library-actions');
+    for (const destination of [
+        { kind: 'search', label: 'JRO Searchで開く', href: searchUrl(entry), icon: 'fa-magnifying-glass' },
+        { kind: 'official', label: '公式ページで開く', href: officialUrl(entry), icon: 'fa-arrow-up-right-from-square' },
+    ]) {
+        const open = element('a', 'library-open');
+        open.dataset.destination = destination.kind;
+        open.href = destination.href;
+        open.target = '_blank';
+        open.rel = 'noopener noreferrer';
+        open.title = destination.label;
+        open.setAttribute('aria-label', `${entry.name}を${destination.label}（新しいタブ）`);
+        const icon = element('i', `fa-solid ${destination.icon}`);
+        icon.setAttribute('aria-hidden', 'true');
+        open.append(icon);
+        actions.append(open);
+    }
     const favorite = selectedFavorite(entry, setId);
     const button = element('button', 'library-favorite', favorite ? '♥' : '♡');
     button.type = 'button';
@@ -80,7 +98,8 @@ function renderCard(entry: LibraryEntry, tab: LibraryTab | 'current', setId = ''
     button.setAttribute('aria-label', `${entry.name}を${action}`);
     button.title = action;
     button.addEventListener('click', () => { void toggleFavorite(entry, setId); });
-    card.append(content, button);
+    actions.append(button);
+    card.append(content, actions);
     return card;
 }
 

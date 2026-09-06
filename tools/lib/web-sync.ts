@@ -4,6 +4,12 @@ export interface WebSet { id: string; name: string; ids: string[]; }
 export interface WebSnapshot { sets: WebSet[]; history: string[]; activeSetId: string; }
 export const WEB_BASE = 'https://asgrcat.github.io/jro-search/';
 
+export function searchUrl(entry: Pick<LibraryEntry, 'type' | 'id'>): string {
+    const url = new URL(entry.type === 'item' ? 'items/' : 'monsters/', WEB_BASE);
+    url.searchParams.set('id', entry.id);
+    return url.href;
+}
+
 export function webType(url: string): EntryType | null {
     try {
         const parsed = new URL(url);

@@ -32,6 +32,10 @@ try {
         '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.png': 'image/png' };
     await context.route('**/*', async (route) => {
         const url = new URL(route.request().url());
+        // Destination tabs are placeholders: verify actual link navigation without loading external sites.
+        if (['https://asgrcat.github.io', 'https://rotool.gungho.jp'].includes(url.origin)) {
+            return route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Destination</title>' });
+        }
         if (url.origin !== origin) return route.abort();
         const file = resolve(dist, `.${decodeURIComponent(url.pathname)}`);
         if (!file.startsWith(`${dist}${sep}`)) return route.fulfill({ status: 403 });
@@ -102,6 +106,21 @@ try {
         assert.equal(await page.locator(`#${name}-list .library-content > :not(a.library-name)`).count(), 0,
             `${name} cards must not render a type, set name, or date row`);
         assert.equal(await page.locator(`#${name}-list .library-name`).count(), expected);
+        const links = await page.locator(`#${name}-list .library-card`).evaluateAll((cards) => cards.map((card) => ({
+            original: card.querySelector('.library-name').href,
+            destinations: [...card.querySelectorAll('.library-open')].map((link) => ({
+                kind: link.dataset.destination, href: link.href, target: link.target, rel: link.rel,
+                label: link.getAttribute('aria-label'), title: link.title,
+            })),
+        })));
+        for (const card of links) {
+            const original = new URL(card.original);
+            const [, type, id] = original.pathname.split('/');
+            const expectedSearch = `https://asgrcat.github.io/jro-search/${type === 'item' ? 'items' : 'monsters'}/?id=${encodeURIComponent(id)}`;
+            assert.deepEqual(card.destinations.map((link) => [link.kind, link.href]), [['search', expectedSearch], ['official', original.href]]);
+            assert.ok(card.destinations.every((link) => link.target === '_blank' && link.rel.includes('noopener')
+                && link.rel.includes('noreferrer') && link.label.includes(link.title)));
+        }
         const buttons = await page.locator(`#${name}-list .library-favorite`).evaluateAll((nodes) => nodes.map((node) => {
             const style = getComputedStyle(node);
             return { fontSize: style.fontSize, width: style.width, height: style.height,
@@ -115,6 +134,21 @@ try {
         await page.locator(`[data-library="${name}"][data-filter="${type}"]`).click();
         await count(name, expected);
     };
+    const checkDestinationTabs = async (name) => {
+        const before = await page.evaluate(() => window.__getLibrary());
+        for (const kind of ['search', 'official']) {
+            const link = page.locator(`#${name}-list [data-destination="${kind}"]`).first();
+            const expected = await link.getAttribute('href');
+            const opened = page.waitForEvent('popup');
+            await link.click();
+            const popup = await opened;
+            try {
+                await popup.waitForURL(expected, { waitUntil: 'domcontentloaded', timeout: 10000 });
+                assert.equal(popup.url(), expected);
+            } finally { await popup.close(); }
+        }
+        assert.deepEqual(await page.evaluate(() => window.__getLibrary()), before, 'opening a destination must not toggle a favorite');
+    };
     await tab('money');
     assert.equal(await page.locator('#zeny-crawl-button').isDisabled(), true);
     await tab('favorites');
@@ -124,7 +158,9 @@ try {
     await count('favorites', 1);
     assert.equal(await page.locator('[data-library="favorites"][data-filter="item"]').getAttribute('aria-pressed'), 'true');
     await filter('favorites', 'item', 1);
+    await checkDestinationTabs('favorites');
     await filter('favorites', 'monster', 1);
+    await checkDestinationTabs('favorites');
     await page.selectOption('#favorites-set', 'monster:default');
     await count('favorites', 1);
     assert.equal(await page.locator('#favorites-list .library-name').textContent(), 'ポリン');
@@ -154,7 +190,9 @@ try {
     await count('history', 2);
     assert.equal(await page.locator('[data-library="history"][data-filter="item"]').getAttribute('aria-pressed'), 'true');
     await filter('history', 'item', 2);
+    await checkDestinationTabs('history');
     await filter('history', 'monster', 1);
+    await checkDestinationTabs('history');
     await page.locator('#history-query').fill('ポリン');
     await count('history', 1);
     await page.locator('#history-query').fill('');
@@ -202,7 +240,7 @@ try {
     assert.deepEqual(pageErrors, []);
     assert.deepEqual(failedRequests, []);
     console.log(JSON.stringify({ result: 'passed', mode: 'Mac Chrome Headless / mocked extension APIs', screenshots: screenshotDir,
-        checks: ['four tabs', 'both type filters', 'name-only card content', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
+        checks: ['four tabs', 'both type filters', 'name-only card content', 'search/official destination links and new tabs', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
 } catch (error) {
     await page.screenshot({ path: resolve(screenshotDir, 'failure.png'), fullPage: true }).catch(() => {});
     console.error(`Failure screenshot: ${screenshotDir}/failure.png`);

@@ -7,7 +7,7 @@
   .panel-tabs { font-size: 14px; }
   .panel-tabs a { padding-inline: 4px; }
 }
-.panel-tabs a:focus-visible, .library-filters button:focus-visible, .library-favorite:focus-visible {
+.panel-tabs a:focus-visible, .library-filters button:focus-visible, .library-favorite:focus-visible, .library-open:focus-visible {
   outline: 2px solid #2563eb; outline-offset: 2px;
 }
 .library-filters { display: flex; gap: 6px; margin-bottom: 12px; }
@@ -20,6 +20,10 @@
 .library-content { flex: 1; min-width: 0; }
 .library-name { color: #1d4ed8; font-size: 14px; overflow-wrap: anywhere; }
 .library-name:hover { text-decoration: underline; }
+.library-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.library-open { display: grid; place-items: center; width: 32px; height: 36px; border: 1px solid #e5e7eb; border-radius: 6px; color: #4b5563; background: white; font-size: 15px; }
+.library-open[data-destination="search"] { color: #1d4ed8; }
+.library-open:hover { background: #eff6ff; border-color: #93c5fd; }
 .library-favorite { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; font-size: 24px; line-height: 1; border: 1px solid #e5e7eb; border-radius: 6px; color: #6b7280; background: white; }
 .library-favorite[aria-pressed="true"] { color: #be185d; background: #fdf2f8; border-color: #fbcfe8; }
 .library-empty { color: #6b7280; font-size: 14px; padding: 20px 4px; line-height: 1.7; }

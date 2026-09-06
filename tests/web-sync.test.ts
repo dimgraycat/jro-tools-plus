@@ -9,6 +9,7 @@ import {
   normalizeSnapshot,
   webKeys,
   webType,
+  searchUrl,
 } from '../tools/lib/web-sync.js';
 
 const item = (id: string, viewedAt = 100): LibraryEntry => ({ type: 'item', id, name: `Item ${id}`, viewedAt });
@@ -17,6 +18,15 @@ const snapshot = (ids: string[] = [], history: string[] = []): WebSnapshot => ({
 });
 
 describe('Web synchronization routing and validation', () => {
+  it('builds type-specific JRO Search detail links without injecting extra query parameters', () => {
+    assert.equal(searchUrl({ type: 'item', id: '501' }), 'https://asgrcat.github.io/jro-search/items/?id=501');
+    assert.equal(searchUrl({ type: 'monster', id: 'PORING' }), 'https://asgrcat.github.io/jro-search/monsters/?id=PORING');
+    const id = '501&scope=favorite#other';
+    const url = new URL(searchUrl({ type: 'item', id }));
+    assert.equal(url.searchParams.get('id'), id);
+    assert.equal(url.searchParams.has('scope'), false);
+    assert.equal(url.hash, '');
+  });
   it('recognizes only production item and monster search pages', () => {
     assert.equal(webType('https://asgrcat.github.io/jro-search/items/?q=赤#detail'), 'item');
     assert.equal(webType('https://asgrcat.github.io/jro-search/monsters/index.html'), 'monster');
