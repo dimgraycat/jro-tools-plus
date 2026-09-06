@@ -35,7 +35,15 @@
 .library-set-label { display: block; margin-top: 8px; }
 .library-set-label select { display: block; margin-top: 4px; margin-bottom: 0; }
 .library-favorite:disabled { opacity: .5; cursor: wait; }
-.extension-update { border-top: 1px solid #e5e7eb; padding: 16px 0; }
-.extension-update h3 { font-weight: 600; }
-.extension-update time { color: #6b7280; font-size: 12px; }
-.extension-update ul { list-style: disc; padding-left: 20px; margin-top: 8px; font-size: 14px; line-height: 1.8; }
+/* Match JRO Search's version-history component in its light theme. */
+.extension-history { --history-surface: #fbfdff; --history-surface-muted: #f8fafc; --history-border: #d9e1ea; --history-text: #1f2933; --history-muted: #64748b; --history-primary: #0284c7; background: var(--history-surface); color: var(--history-text); }
+.extension-history-header { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--history-border); }
+.extension-history-title { margin: 0; color: var(--history-text); font-size: 16px; font-weight: 800; }
+.extension-history-summary { margin: 4px 0 0; color: var(--history-muted); font-size: 12px; line-height: 1.6; }
+.version-history-list { display: grid; gap: 10px; }
+.version-history-entry { display: grid; gap: 8px; border: 1px solid var(--history-border); border-radius: 8px; padding: 11px 12px; background: var(--history-surface-muted); }
+.version-history-entry.is-current { border-color: var(--history-primary); }
+.version-history-entry-header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.version-history-version { margin: 0; color: var(--history-text); font-size: 14px; font-weight: 800; }
+.version-history-date { color: var(--history-muted); font-size: 11px; white-space: nowrap; }
+.version-history-changes { display: grid; gap: 4px; margin: 0; padding-left: 18px; color: var(--history-muted); font-size: 12px; line-height: 1.6; list-style: disc; }

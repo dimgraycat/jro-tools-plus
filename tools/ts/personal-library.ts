@@ -185,19 +185,22 @@ async function refreshCurrentEntry(): Promise<void> {
 }
 
 async function renderUpdates(): Promise<void> {
-    document.getElementById('extension-version')!.textContent = `インストール済みバージョン ${chrome.runtime.getManifest().version}`;
+    const installedVersion = chrome.runtime.getManifest().version;
     const container = document.getElementById('extension-updates')!;
     try {
         const response = await fetch(chrome.runtime.getURL('data/version-history.json'));
         if (!response.ok) throw new Error('更新履歴を読み込めませんでした。');
         const entries = parseVersionHistory(await response.json());
         container.replaceChildren(...entries.map((entry) => {
-            const section = element('section', 'extension-update');
-            const date = element('time', '', entry.date);
+            const section = element('article', 'extension-update version-history-entry');
+            section.classList.toggle('is-current', entry.version === installedVersion);
+            const header = element('div', 'version-history-entry-header');
+            const date = element('time', 'version-history-date', entry.date);
             date.dateTime = entry.date;
-            const changes = element('ul');
+            const changes = element('ul', 'version-history-changes');
             changes.append(...entry.changes.map((change) => element('li', '', change)));
-            section.append(element('h3', '', entry.version), date, changes);
+            header.append(element('h3', 'version-history-version', entry.version), date);
+            section.append(header, changes);
             return section;
         }));
     } catch (error) {

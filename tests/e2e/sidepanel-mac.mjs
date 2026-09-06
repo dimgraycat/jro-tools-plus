@@ -219,7 +219,18 @@ try {
     assert.equal(action.favorite, false);
     await page.screenshot({ path: resolve(screenshotDir, 'history.png'), fullPage: true });
     await tab('updates');
-    assert.match(await page.locator('#extension-version').textContent(), new RegExp(manifest.version.replaceAll('.', '\\.')));
+    assert.equal(await page.locator('.extension-history-title').textContent(), '更新履歴');
+    assert.equal(await page.locator('#extension-version').count(), 0);
+    assert.equal(await page.locator('.extension-update.is-current .version-history-version').textContent(), manifest.version);
+    const historyStyle = await page.locator('.extension-update.is-current').evaluate((node) => {
+        const style = getComputedStyle(node);
+        const header = getComputedStyle(node.querySelector('.version-history-entry-header'));
+        const changes = getComputedStyle(node.querySelector('.version-history-changes'));
+        return { border: style.borderTopColor, radius: style.borderRadius, padding: style.padding,
+            display: header.display, alignment: header.justifyContent, font: changes.fontSize };
+    });
+    assert.deepEqual(historyStyle, { border: 'rgb(2, 132, 199)', radius: '8px', padding: '11px 12px',
+        display: 'flex', alignment: 'space-between', font: '12px' });
     assert.ok(await page.locator('.extension-update').count() > 0);
     const displayedVersions = await page.locator('.extension-update h3').allTextContents();
     assert.ok(!displayedVersions.includes('1.3.4') && !displayedVersions.includes('1.3.3'),

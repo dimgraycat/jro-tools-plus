@@ -91,10 +91,12 @@
       <p id="history-empty" class="library-empty" hidden></p>
     </main>
 
-    <main id="updates" class="p-4 js-pages-updates hidden break-words">
-      <h2 class="text-xl font-bold mb-2">JRO Tools Plus 更新履歴</h2>
-      <p id="extension-version" class="text-sm text-gray-600 mb-4"></p>
-      <div id="extension-updates"></div>
+    <main id="updates" class="extension-history p-4 js-pages-updates hidden break-words">
+      <div class="extension-history-header">
+        <h2 class="extension-history-title">更新履歴</h2>
+        <p class="extension-history-summary">バージョンごとの変更内容です。</p>
+      </div>
+      <div id="extension-updates" class="version-history-list"></div>
     </main>
 
     <p id="library-error" class="px-4 pb-4 text-sm text-red-500" role="alert" hidden></p>
