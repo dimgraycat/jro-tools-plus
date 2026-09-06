@@ -1,8 +1,8 @@
-# jRo Tools Plus 仕様
+# JRO Tools Plus 仕様
 
 ## 概要
 
-jRo Tools Plus は jRO 公式系サイト向けの Chrome Extension です。
+JRO Tools Plus は JRO 公式系サイト向けの Chrome Extension です。
 
 主な役割は次の 2 つです。
 
@@ -14,7 +14,7 @@ jRo Tools Plus は jRO 公式系サイト向けの Chrome Extension です。
 Manifest は `public/manifest.json` で管理します。
 
 - Manifest version: `3`
-- 拡張機能名: `jRo Tools Plus`
+- 拡張機能名: `JRO Tools Plus`
 - Side Panel: `tools/sidepanel.html`
 - Background service worker: `background/service-worker.js`
 - Content script 対象:
@@ -35,7 +35,7 @@ Host permissions は次の通りです。
 
 - `https://rowebtool.gungho.jp/*`: Side Panel を先に開いた後でキャラクター情報ページへ切り替えた場合でも、対象タブの URL 判定と scraper 注入を実行する
 
-`web_accessible_resources` では次のリソースを jRO 公式系ドメインから参照可能にします。
+`web_accessible_resources` では次のリソースを JRO 公式系ドメインから参照可能にします。
 
 - `css/jro_tools_plus.min.css`
 - `tools/js/zeny-characterpage-scraper.js`

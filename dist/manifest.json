@@ -1,6 +1,6 @@
 {
-    "name": "jRo Tools Plus",
-    "description": "jROの公式ページを便利にツール",
+    "name": "JRO Tools Plus",
+    "description": "JROの公式ページを便利にツール",
     "version": "2026.9.1",
     "manifest_version": 3,
     "icons": {
@@ -25,7 +25,7 @@
     ],
     "action": {
         "default_icon": "images/icon-19.png",
-        "default_title": "jRo Tools Plus を開閉"
+        "default_title": "JRO Tools Plus を開閉"
     },
     "background": {
         "service_worker": "background/service-worker.js",
