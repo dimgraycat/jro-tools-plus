@@ -82,7 +82,7 @@ Host permissions は次の通りです。
 
 Side Panel の HTML は `tools/sidepanel.html` です。拡張機能アイコンを押すと `background/service-worker.js` が `chrome.sidePanel.open()` で Side Panel を開きます。開いている状態でもう一度拡張機能アイコンを押すと、Chrome 141+ の `chrome.sidePanel.close()` で閉じます。
 
-Side Panel のヘッダーにはページ切り替えメニューを表示します。
+Side Panel のヘッダーには4つのページ切り替えメニューを横一列に表示します。狭い幅では文字と余白を詰め、320px幅でも折り返さずに表示します。
 
 - `所持Zeny`: 所持 Zeny 収集画面
 - `お気に入り`: 保存済みの一覧・名前検索・セット絞り込み・現在の公式ページの登録／解除

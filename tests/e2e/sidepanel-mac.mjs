@@ -151,11 +151,25 @@ try {
     assert.match(await page.locator('#extension-version').textContent(), new RegExp(manifest.version.replaceAll('.', '\\.')));
     assert.ok(await page.locator('.extension-update').count() > 0);
     await page.screenshot({ path: resolve(screenshotDir, 'updates.png'), fullPage: true });
-    await page.setViewportSize({ width: 320, height: 850 });
-    for (const name of ['money', 'favorites', 'history', 'updates']) {
-        await tab(name);
-        const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scroll: document.documentElement.scrollWidth }));
-        assert.ok(dimensions.scroll <= dimensions.width, `${name} overflows at 320px: ${JSON.stringify(dimensions)}`);
+    for (const width of [320, 360, 418]) {
+        await page.setViewportSize({ width, height: 850 });
+        for (const name of ['money', 'favorites', 'history', 'updates']) {
+            await tab(name);
+            const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scroll: document.documentElement.scrollWidth }));
+            assert.ok(dimensions.scroll <= dimensions.width, `${name} overflows at ${width}px: ${JSON.stringify(dimensions)}`);
+            const tabs = await page.locator('.panel-tabs a').evaluateAll((links) => links.map((link) => {
+                const rect = link.getBoundingClientRect();
+                return { top: rect.top, left: rect.left, right: rect.right,
+                    contentsFit: [...link.children].every((child) => {
+                        const bounds = child.getBoundingClientRect();
+                        return bounds.left >= rect.left && bounds.right <= rect.right;
+                    }) };
+            }));
+            assert.equal(tabs.length, 4);
+            assert.equal(new Set(tabs.map((entry) => entry.top)).size, 1, `tabs wrap at ${width}px`);
+            assert.ok(tabs.every((entry) => entry.contentsFit && entry.left >= 0 && entry.right <= width), `tab text overflows at ${width}px`);
+        }
+        await page.locator('header').screenshot({ path: resolve(screenshotDir, `tabs-${width}.png`) });
     }
     await tab('favorites');
     await page.evaluate(() => {
@@ -169,7 +183,7 @@ try {
     assert.deepEqual(pageErrors, []);
     assert.deepEqual(failedRequests, []);
     console.log(JSON.stringify({ result: 'passed', mode: 'Mac Chrome Headless / mocked extension APIs', screenshots: screenshotDir,
-        checks: ['four tabs', 'both type filters', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', '320px overflow', 'page errors'] }));
+        checks: ['four tabs', 'both type filters', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
 } catch (error) {
     await page.screenshot({ path: resolve(screenshotDir, 'failure.png'), fullPage: true }).catch(() => {});
     console.error(`Failure screenshot: ${screenshotDir}/failure.png`);
