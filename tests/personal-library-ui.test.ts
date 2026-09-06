@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { LibraryEntry } from '../tools/lib/personal-library.js';
 import { parseVersionHistory, selectLibraryEntries } from '../tools/lib/library-view.js';
 
@@ -8,6 +9,20 @@ const entries: LibraryEntry[] = [
     { type: 'monster', id: '1002', name: 'ポリン', viewedAt: 20, setIds: ['default'] },
     { type: 'item', id: '502', name: '青ポーション', viewedAt: 10, setIds: ['default'] },
 ];
+
+test('release history matches built data and the changelog without changing the static version', () => {
+    const source = readFileSync('public/data/version-history.json', 'utf8');
+    assert.equal(readFileSync('dist/data/version-history.json', 'utf8'), source);
+    const history = parseVersionHistory(JSON.parse(source));
+    const current = history.find((entry) => entry.version === '2026.9.1')!;
+    assert.ok(current);
+    assert.equal(new Set(current.changes).size, current.changes.length);
+    const changelog = readFileSync('CHANGELOG.md', 'utf8').split('## 2026.9.1 (2026-09-06)')[1].split('### [1.3.4]')[0];
+    assert.deepEqual(changelog.split('\n').filter((line) => line.startsWith('* ')).map((line) => line.slice(2)), current.changes);
+    for (const path of ['package.json', 'public/manifest.json', 'dist/manifest.json']) {
+        assert.equal(JSON.parse(readFileSync(path, 'utf8')).version, current.version);
+    }
+});
 
 test('all/items/monsters filter preserves the source ordering', () => {
     assert.deepEqual(selectLibraryEntries(entries, { type: 'all', query: '', setId: '' }), entries);
