@@ -114,11 +114,21 @@ try {
         Object.defineProperty(window, 'chrome', { value: api, configurable: true });
     }, { origin, version: manifest.version });
     await page.goto(`${origin}/tools/sidepanel.html`, { waitUntil: 'networkidle' });
+    assert.equal(assistRequests, 0, 'Zeny must not fetch enchantments');
     const tab = async (name) => {
-        await page.locator(`nav a[href="#${name}"]`).click();
+        const child = ['search-assist', 'favorites', 'history'].includes(name);
+        if (child && !await page.locator('#search-subnav').isVisible()) {
+            await page.locator('[data-menu-group="search"] a').click();
+        }
+        await page.locator(`${child ? '.panel-subtabs' : '.panel-tabs'} a[href="#${name}"]`).click();
         await page.waitForFunction((id) => !document.getElementById(id).classList.contains('hidden'), name);
         const visible = await page.locator('main:visible').evaluateAll((nodes) => nodes.map((node) => node.id));
         assert.deepEqual(visible, [name]);
+        assert.equal(await page.locator('#search-subnav').isVisible(), child);
+        if (child) {
+            assert.equal(await page.locator('.panel-tabs [aria-current="page"]').textContent(), '検索');
+            assert.equal(await page.locator('.panel-subtabs [aria-current="page"]').getAttribute('href'), `#${name}`);
+        }
     };
     const count = async (name, expected) => {
         await page.waitForFunction(({ name, expected }) => document.getElementById(`${name}-count`).textContent === `${expected}件`, { name, expected });
@@ -256,7 +266,6 @@ try {
     assert.ok(!displayedVersions.includes('1.3.4') && !displayedVersions.includes('1.3.3'),
         'legacy release history must not appear in the Side Panel');
     await page.screenshot({ path: resolve(screenshotDir, 'updates.png'), fullPage: true });
-    assert.equal(assistRequests, 0, 'other tabs must not fetch enchantments');
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/'));
     await tab('search-assist');
     await page.waitForSelector('.assist-set');
@@ -290,25 +299,40 @@ try {
                         return bounds.left >= rect.left && bounds.right <= rect.right;
                     }) };
             }));
-            assert.equal(tabs.length, 5);
+            assert.equal(tabs.length, 3);
             assert.equal(new Set(tabs.map((entry) => entry.top)).size, 1, `tabs wrap at ${width}px`);
             assert.ok(tabs.every((entry) => entry.contentsFit && entry.left >= 0 && entry.right <= width), `tab text overflows at ${width}px`);
+            if (['search-assist', 'favorites', 'history'].includes(name)) {
+                const childTabs = await page.locator('.panel-subtabs a').evaluateAll((nodes) => nodes.map((node) => {
+                    const box = node.getBoundingClientRect();
+                    return { top: box.top, right: box.right, width: box.width, scroll: node.scrollWidth };
+                }));
+                assert.equal(childTabs.length, 3);
+                assert.equal(new Set(childTabs.map((child) => child.top)).size, 1);
+                assert.ok(childTabs.every((child) => child.top > tabs[0].top && child.right <= width && child.scroll <= child.width + 1));
+            }
         }
         await page.locator('header').screenshot({ path: resolve(screenshotDir, `tabs-${width}.png`) });
     }
     await tab('favorites');
     await page.evaluate(() => {
+        // State updates must still reach the selected nested page.
         const next = window.__getLibrary();
         next.revision++;
         next.favorites = [];
         window.__publishLibrary(next);
     });
     await count('favorites', 0);
+    await tab('updates');
+    await page.locator('[data-menu-group="search"] a').click();
+    await page.waitForFunction(() => location.hash === '#favorites' && !document.getElementById('favorites').classList.contains('hidden'));
+    assert.equal(await page.locator('#search-subnav').isVisible(), true);
+    await page.screenshot({ path: resolve(screenshotDir, 'nested-tabs.png'), fullPage: true });
     assert.equal(await page.locator('#library-error').isVisible(), false);
     assert.deepEqual(pageErrors, []);
     assert.deepEqual(failedRequests, []);
     console.log(JSON.stringify({ result: 'passed', mode: 'Mac Chrome Headless / mocked extension APIs', screenshots: screenshotDir,
-        checks: ['five tabs', 'enchantment display and page tracking', 'safe candidate text', 'fetch failure and retry', 'both type filters', 'name-only card content', 'search link and new tab', 'hover/keyboard action tooltips', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'single-row tabs at 320/360/418px', 'page errors'] }));
+        checks: ['three parent tabs and three search subtabs', 'remember selected child', 'enchantment display and page tracking', 'safe candidate text', 'fetch failure and retry', 'both type filters', 'name-only card content', 'search link and new tab', 'hover/keyboard action tooltips', 'set namespaces', 'favorite actions', 'name search', 'storage event', 'static updates', 'two-row tabs at 320/360/418px', 'page errors'] }));
 } catch (error) {
     await page.screenshot({ path: resolve(screenshotDir, 'failure.png'), fullPage: true }).catch(() => {});
     console.error(`Failure screenshot: ${screenshotDir}/failure.png`);

@@ -211,6 +211,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateActiveState() {
         const currentHash = window.location.hash;
         const targetId = currentHash.substring(1);
+        const searchSelected = ['search-assist', 'favorites', 'history'].includes(targetId);
+        const searchSubnav = document.getElementById('search-subnav');
+        if (searchSubnav) searchSubnav.hidden = !searchSelected;
+        const searchLink = document.querySelector<HTMLAnchorElement>('[data-menu-group="search"] a');
+        // Remember the selected child when returning from Zeny or updates.
+        if (searchSelected && searchLink) searchLink.href = currentHash;
 
         // メニューの選択状態を更新
         menuItems.forEach(li => {
@@ -224,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.classList.add('text-gray-700');
             link.removeAttribute('aria-current');
 
-            if (linkHref === currentHash) {
+            if (li.getAttribute('data-menu-group') === 'search' ? searchSelected : linkHref === currentHash) {
                 link.setAttribute('aria-current', 'page');
                 li.classList.add('bg-gray-100', 'border-blue-500');
                 link.classList.add('text-blue-600', 'font-semibold');

@@ -158,7 +158,7 @@ function render(): void {
         empty.hidden = entries.length > 0;
         empty.textContent = state[tab].length ? '条件に一致するデータがありません。'
             : tab === 'favorites' ? 'お気に入りはまだありません。公式ページで追加するか、JRO Searchを開いて共有データを読み込んでください。'
-                : '閲覧履歴はまだありません。公式のアイテム・モンスター詳細ページを開くと記録されます。';
+                : '検索履歴はまだありません。公式のアイテム・モンスター詳細ページを開くと記録されます。';
     }
     renderCurrentEntry();
 }

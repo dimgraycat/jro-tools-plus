@@ -82,7 +82,7 @@ Host permissions は次の通りです。
 
 Side Panel の HTML は `tools/sidepanel.html` です。拡張機能アイコンを押すと `background/service-worker.js` が `chrome.sidePanel.open()` で Side Panel を開きます。開いている状態でもう一度拡張機能アイコンを押すと、Chrome 141+ の `chrome.sidePanel.close()` で閉じます。
 
-Side Panel のヘッダーには5つのページ切り替えメニューを横一列に表示します。480px未満では各タブ内のアイコンを文字の上へ配置し、320px幅でもタブを折り返さずに表示します。
+Side Panel のヘッダー上段は「所持Zeny・検索・更新履歴」の3タブです。「検索」の選択中のみ2段目に「検索補助・お気に入り・検索履歴」を表示します。他の上段タブから戻ると、直前に選択した検索内のページへ戻ります。各段は320px幅でも横一列に収めます。検索履歴は既存の閲覧履歴の表示名であり、保存内容・同期方式は変更しません。
 
 ### 検索補助
 
