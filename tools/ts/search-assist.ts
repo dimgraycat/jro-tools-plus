@@ -1,3 +1,4 @@
+import { createMembershipLoader, PackageMembership } from '../lib/package-memberships.js';
 import { entryFromUrl } from '../lib/personal-library.js';
 import { AssistItem, loadAssistItem } from '../lib/search-assist.js';
 import { searchUrl } from '../lib/web-sync.js';
@@ -20,10 +21,33 @@ function itemLink(name: string, id: string): HTMLAnchorElement {
     return link;
 }
 
-function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCandidate[] = []): void {
+function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCandidate[] = [], memberships: PackageMembership[] = []): void {
     const title = node('h3', '', 'assist-item-name');
     title.append(itemLink(item.name, item.id));
     container.append(title);
+    for (const group of ['costama', 'ragcan'] as const) {
+        const packages = memberships.filter((entry) => entry.group === group);
+        if (!packages.length) continue;
+        const section = node('section', '', 'assist-memberships');
+        section.dataset.packageGroup = group;
+        section.append(node('h4', `${group === 'costama' ? '衣装の収録情報（コスたま）' : 'ラグ缶の収録情報'}（${packages.length}件）`, 'assist-item-name'));
+        const list = node('ul', '', 'library-list');
+        for (const pkg of packages) {
+            const row = node('li', '', 'library-card');
+            const label = node('span', pkg.label);
+            if (pkg.url) {
+                const link = node('a', pkg.label);
+                link.href = pkg.url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.title = '公式の収録ページを開く';
+                row.append(link);
+            } else row.append(label);
+            list.append(row);
+        }
+        section.append(list);
+        container.append(section);
+    }
     if (targets.length) {
         const section = node('section', '', 'assist-targets');
         section.append(node('h4', `エンチャント可能な装備（${targets.length}件）`, 'assist-item-name'));
@@ -36,8 +60,8 @@ function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCan
         section.append(list);
         container.append(section);
     }
-    if (!item.sets.length && !targets.length) {
-        container.append(node('p', 'このアイテムのエンチャント情報はJRO Searchに登録されていません。'));
+    if (!item.sets.length && !targets.length && !memberships.length) {
+        container.append(node('p', 'このアイテムのエンチャント・収録情報はJRO Searchに登録されていません。'));
     }
     for (const set of item.sets) {
         const details = node('details', '', 'assist-set');
@@ -68,6 +92,7 @@ function initialize(): void {
     let revision = 0;
     let controller: AbortController | undefined;
     const loadTargets = createTargetLoader();
+    const loadMemberships = createMembershipLoader();
     const refresh = async () => {
         const token = ++revision;
         controller?.abort();
@@ -80,27 +105,30 @@ function initialize(): void {
             if (token !== revision) return;
             const entry = tab?.url ? entryFromUrl(tab.url, tab.title) : null;
             if (entry?.type !== 'item') {
-                container.append(node('p', '公式のアイテム詳細ページを開くと、エンチャント情報を表示します。'));
+                container.append(node('p', '公式のアイテム詳細ページを開くと、エンチャント・収録情報を表示します。'));
                 return;
             }
-            container.append(node('p', `${entry.name}のエンチャント情報を取得中…`));
+            container.append(node('p', `${entry.name}の検索補助情報を取得中…`));
             controller = new AbortController();
             const requestController = controller;
             const timeout = setTimeout(() => requestController.abort(), 10000);
             let item: AssistItem | null;
             let targets: AssistCandidate[] = [];
+            let memberships: PackageMembership[] = [];
             try {
                 item = await loadAssistItem(entry.id, requestController.signal);
-                if (item) targets = await loadTargets(item, requestController.signal);
+                if (item) [targets, memberships] = await Promise.all([
+                    loadTargets(item, requestController.signal), loadMemberships(item.id, requestController.signal),
+                ]);
             }
             finally { clearTimeout(timeout); }
             if (token !== revision) return;
             container.replaceChildren();
-            if (item) renderItem(item, container, targets);
+            if (item) renderItem(item, container, targets, memberships);
             else container.append(node('p', 'このアイテムはJRO Searchにまだ登録されていません。'));
         } catch {
             if (token !== revision) return;
-            container.replaceChildren(node('p', 'エンチャント情報を取得できませんでした。通信状態を確認して再試行してください。'));
+            container.replaceChildren(node('p', '検索補助情報を取得できませんでした。通信状態を確認して再試行してください。'));
             retry.hidden = false;
         }
     };

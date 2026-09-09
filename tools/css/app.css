@@ -67,3 +67,5 @@ html { scrollbar-gutter: stable; }
 .version-history-version { margin: 0; color: var(--history-text); font-size: 14px; font-weight: 800; }
 .version-history-date { color: var(--history-muted); font-size: 11px; white-space: nowrap; }
 .version-history-changes { display: grid; gap: 4px; margin: 0; padding-left: 18px; color: var(--history-muted); font-size: 12px; line-height: 1.6; list-style: disc; }
+
+.assist-memberships { margin-bottom: 16px; }

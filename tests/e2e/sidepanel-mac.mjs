@@ -25,7 +25,12 @@ page.setDefaultTimeout(5000);
 const pageErrors = [];
 const failedRequests = [];
 page.on('pageerror', (error) => pageErrors.push(error.message));
-page.on('requestfailed', (request) => failedRequests.push(`${request.url()}: ${request.failure()?.errorText}`));
+page.on('requestfailed', (request) => {
+    // Changing tabs intentionally aborts pending search-assist requests.
+    if (request.failure()?.errorText === 'net::ERR_ABORTED'
+        && request.url().startsWith('https://asgrcat.github.io/jro-search/data/')) return;
+    failedRequests.push(`${request.url()}: ${request.failure()?.errorText}`);
+});
 
 try {
     let assistFailure = false;
@@ -34,6 +39,15 @@ try {
         '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.png': 'image/png' };
     await context.route('**/*', async (route) => {
         const url = new URL(route.request().url());
+        if (url.pathname.endsWith('/package-index.json')) {
+            return route.fulfill({ json: { groups: [
+                { key: 'ragcan', packages: [{ key: 'ragcan2026september', label: '2026Sep',
+                    url: 'https://ragnarokonline.gungho.jp/cms/news/ragcan2026september', item_ids: ['15424'] }] },
+                { key: 'costama', packages: [{ key: 'costama-gourmet2', label: '2026GourmetII',
+                    url: 'https://ragnarokonline.gungho.jp/cms/news/costama-gourmet2', item_ids: ['410707'] },
+                    { key: 'unsafe', label: '<img src=x onerror=alert(1)>', url: 'javascript:alert(1)', item_ids: ['410707'] }] },
+            ] } });
+        }
         if (url.pathname.endsWith('/item-enchantment-targets.json')) {
             return route.fulfill({ json: { items: [{ item_id: '15424', sets: [{ slots: [
                 { candidates: [{ item_id: '4879', name: '大鷲の眼光' }] },
@@ -51,7 +65,7 @@ try {
                 fee: [{ item_name: '迷宮調査貢献の証', amount: 10 }],
                 slots: [{ slot_label: '第4スロット', required_refine: '精錬値8以上',
                     candidates: [{ name: '大鷲の眼光', item_id: '4879' }, { name: '<img src=x onerror=alert(1)>' }] }],
-            }] } }, { item_id: '502', name: '青ポーション' }, { item_id: '4879', name: '大鷲の眼光' }] } });
+            }] } }, { item_id: '410707', name: '[衣装] お菓子' }, { item_id: '502', name: '青ポーション' }, { item_id: '4879', name: '大鷲の眼光' }] } });
         }
         // Destination tabs are placeholders: verify actual link navigation without loading external sites.
         if (['https://asgrcat.github.io', 'https://rotool.gungho.jp'].includes(url.origin)) {
@@ -286,7 +300,17 @@ try {
     assert.match(await page.locator('#search-assist-content').textContent(), /精錬値8以上/);
     assert.equal(await page.locator('.assist-candidates a').getAttribute('href'), 'https://asgrcat.github.io/jro-search/items/?id=4879');
     assert.equal(await page.locator('.assist-candidates img').count(), 0, 'candidate names must be text, not HTML');
+    assert.match(await page.locator('[data-package-group="ragcan"]').textContent(), /2026年09月/);
+    assert.equal(await page.locator('[data-package-group="ragcan"] a').getAttribute('href'), 'https://ragnarokonline.gungho.jp/cms/news/ragcan2026september');
     await page.screenshot({ path: resolve(screenshotDir, 'search-assist.png'), fullPage: true });
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/410707/'));
+    await page.waitForSelector('[data-package-group="costama"]');
+    assert.match(await page.locator('[data-package-group="costama"]').textContent(), /衣装の収録情報（コスたま）（2件）/);
+    assert.equal(await page.locator('[data-package-group="costama"] a').count(), 1);
+    assert.equal(await page.locator('[data-package-group="costama"] img').count(), 0);
+    assert.equal(await page.locator('[data-package-group="ragcan"]').count(), 0);
+    assert.doesNotMatch(await page.locator('#search-assist-content').textContent(), /登録されていません/);
+    await page.screenshot({ path: resolve(screenshotDir, 'costume-memberships.png'), fullPage: true });
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/4879/0/'));
     await page.waitForSelector('.assist-targets');
     assert.equal(await page.locator('.assist-targets li').count(), 1);
@@ -295,7 +319,7 @@ try {
     assert.equal(await page.locator('.assist-set').count(), 0);
     await page.screenshot({ path: resolve(screenshotDir, 'enchantment-targets.png'), fullPage: true });
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/502/'));
-    await page.waitForFunction(() => document.getElementById('search-assist-content').textContent.includes('エンチャント情報はJRO Searchに登録されていません'));
+    await page.waitForFunction(() => document.getElementById('search-assist-content').textContent.includes('エンチャント・収録情報はJRO Searchに登録されていません'));
     await page.evaluate(() => window.__setActiveUrl('https://example.com/'));
     await page.waitForFunction(() => document.getElementById('search-assist-content').textContent.includes('公式のアイテム詳細ページを開くと'));
     assistFailure = true;
