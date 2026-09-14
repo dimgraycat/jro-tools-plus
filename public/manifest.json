@@ -1,7 +1,7 @@
 {
     "name": "JRO Tools Plus",
     "description": "JROの公式ページを便利にツール",
-    "version": "2026.9.1",
+    "version": "2026.9.2",
     "manifest_version": 3,
     "minimum_chrome_version": "116",
     "icons": {
@@ -25,8 +25,13 @@
         },
         {
             "run_at": "document_idle",
-            "matches": ["https://asgrcat.github.io/jro-search/items/*", "https://asgrcat.github.io/jro-search/monsters/*"],
-            "js": ["content_scripts/web-library-bridge.js"]
+            "matches": [
+                "https://asgrcat.github.io/jro-search/items/*",
+                "https://asgrcat.github.io/jro-search/monsters/*"
+            ],
+            "js": [
+                "content_scripts/web-library-bridge.js"
+            ]
         }
     ],
     "action": {

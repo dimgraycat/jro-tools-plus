@@ -14,10 +14,10 @@ test('release history matches built data and the changelog without changing the 
     const source = readFileSync('public/data/version-history.json', 'utf8');
     assert.equal(readFileSync('dist/data/version-history.json', 'utf8'), source);
     const history = parseVersionHistory(JSON.parse(source));
-    const current = history.find((entry) => entry.version === '2026.9.1')!;
+    const current = history.find((entry) => entry.version === '2026.9.2')!;
     assert.ok(current);
     assert.equal(new Set(current.changes).size, current.changes.length);
-    const changelog = readFileSync('CHANGELOG.md', 'utf8').split('## 2026.9.1 (2026-09-06)')[1].split('### [1.3.4]')[0];
+    const changelog = readFileSync('CHANGELOG.md', 'utf8').split('## 2026.9.2 (2026-09-14)')[1].split('## 2026.9.1')[0];
     assert.deepEqual(changelog.split('\n').filter((line) => line.startsWith('* ')).map((line) => line.slice(2)), current.changes);
     for (const path of ['package.json', 'public/manifest.json', 'dist/manifest.json']) {
         assert.equal(JSON.parse(readFileSync(path, 'utf8')).version, current.version);
