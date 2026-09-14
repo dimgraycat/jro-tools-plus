@@ -7,7 +7,8 @@ export const validItemId = (value: unknown): boolean => /^[1-9]\d*$/.test(text(v
 export interface AssistCandidate { name: string; id: string }
 export interface AssistSlot { name: string; conditions: string[]; candidates: AssistCandidate[] }
 export interface AssistSet { name: string; conditions: string[]; slots: AssistSlot[] }
-export interface AssistItem { id: string; name: string; sets: AssistSet[] }
+export interface AssistPointExchange { label: string; period: string; points: string; url: string }
+export interface AssistItem { id: string; name: string; sets: AssistSet[]; pointExchanges: AssistPointExchange[] }
 
 export function detailUrl(id: string): string {
     if (!validItemId(id)) throw new Error('Invalid item ID');
@@ -41,6 +42,15 @@ export function parseAssistItem(payload: unknown, id: string): AssistItem | null
     if (enchantments.sets !== undefined && !Array.isArray(enchantments.sets)) throw new Error('Invalid enchantment data');
     return {
         id, name: text(item.name) || id,
+        pointExchanges: list(item.costama_point_exchanges).map((value) => {
+            const entry = record(value);
+            let url = '';
+            try {
+                const parsed = new URL(text(entry.url));
+                if (['https:', 'http:'].includes(parsed.protocol) && parsed.hostname === 'ragnarokonline.gungho.jp' && !parsed.username && !parsed.password) url = parsed.href;
+            } catch { /* Keep source labels as plain text when the URL is invalid. */ }
+            return { label: text(entry.label), period: text(entry.period), points: text(entry.points), url };
+        }).filter((entry) => entry.label && entry.period && validItemId(entry.points)),
         sets: list(enchantments.sets).map((value) => {
             const set = record(value);
             const fee = list(set.fee).map((value) => {

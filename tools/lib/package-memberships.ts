@@ -1,6 +1,7 @@
 import { validItemId } from './search-assist.js';
 
-export interface PackageMembership { key: string; group: 'costama' | 'ragcan'; label: string; url: string }
+export interface RevivalPeriod { label: string; period: string; url: string }
+export interface PackageMembership { key: string; group: 'costama' | 'ragcan'; label: string; url: string; revivals: RevivalPeriod[] }
 type MembershipIndex = Map<string, PackageMembership[]>;
 const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const string = (value: unknown): string => typeof value === 'string' ? value.trim() : '';
@@ -35,7 +36,11 @@ export function buildMembershipIndex(payload: unknown): MembershipIndex {
             const key = string(pkg.key);
             const name = string(pkg.label) || key;
             if (!key || !name) continue;
-            const membership: PackageMembership = { key, group: group.key, label: label(name), url: officialUrl(pkg.url) };
+            const revivals = group.key === 'costama' && Array.isArray(pkg.revivals) ? pkg.revivals.map((value) => {
+                const entry = object(value);
+                return { label: string(entry.label), period: string(entry.period), url: officialUrl(entry.url) };
+            }).filter((entry) => entry.label && entry.period) : [];
+            const membership: PackageMembership = { key, group: group.key, label: label(name), url: officialUrl(pkg.url), revivals };
             for (const value of pkg.item_ids) {
                 if (!validItemId(value)) continue;
                 const id = String(value);

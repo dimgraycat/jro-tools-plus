@@ -44,7 +44,7 @@ try {
                 { key: 'ragcan', packages: [{ key: 'ragcan2026september', label: '2026Sep',
                     url: 'https://ragnarokonline.gungho.jp/cms/news/ragcan2026september', item_ids: ['15424'] }] },
                 { key: 'costama', packages: [{ key: 'costama-gourmet2', label: '2026GourmetII',
-                    url: 'https://ragnarokonline.gungho.jp/cms/news/costama-gourmet2', item_ids: ['410707'] },
+                    url: 'https://ragnarokonline.gungho.jp/cms/news/costama-gourmet2', item_ids: ['410707'], revivals: [{ label: '復刻コスたま2026 Season3', period: '2026年8月25日（火）15：00～2026年9月22日（火）10：00', url: 'https://ragnarokonline.gungho.jp/special/costama2026-season3/' }] },
                     { key: 'unsafe', label: '<img src=x onerror=alert(1)>', url: 'javascript:alert(1)', item_ids: ['410707'] }] },
             ] } });
         }
@@ -65,7 +65,7 @@ try {
                 fee: [{ item_name: '迷宮調査貢献の証', amount: 10 }],
                 slots: [{ slot_label: '第4スロット', required_refine: '精錬値8以上',
                     candidates: [{ name: '大鷲の眼光', item_id: '4879' }, { name: '<img src=x onerror=alert(1)>' }] }],
-            }] } }, { item_id: '410707', name: '[衣装] お菓子' }, { item_id: '502', name: '青ポーション' }, { item_id: '4879', name: '大鷲の眼光' }] } });
+            }] } }, { item_id: '480879', name: '[衣装] 傲慢な暴走したタナトスの翼', costama_point_exchanges: [{ label: '復刻コスたま2026 Season3', period: '2026年7月28日（火）定期メンテナンス終了～2026年10月27日（火）10：00', points: '80', url: 'https://ragnarokonline.gungho.jp/special/costama2026-season3/' }] }, { item_id: '410707', name: '[衣装] お菓子' }, { item_id: '502', name: '青ポーション' }, { item_id: '4879', name: '大鷲の眼光' }] } });
         }
         // Destination tabs are placeholders: verify actual link navigation without loading external sites.
         if (['https://asgrcat.github.io', 'https://rotool.gungho.jp'].includes(url.origin)) {
@@ -306,11 +306,20 @@ try {
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/410707/'));
     await page.waitForSelector('[data-package-group="costama"]');
     assert.match(await page.locator('[data-package-group="costama"]').textContent(), /衣装の収録情報（コスたま）（2件）/);
-    assert.equal(await page.locator('[data-package-group="costama"] a').count(), 1);
+    assert.equal(await page.locator('[data-package-group="costama"] a').count(), 2);
+    await page.locator('.assist-revivals summary').click();
+    assert.match(await page.locator('.assist-revivals').textContent(), /2026年8月25日/);
+    assert.equal(await page.locator('.assist-revivals a').getAttribute('href'), 'https://ragnarokonline.gungho.jp/special/costama2026-season3/');
     assert.equal(await page.locator('[data-package-group="costama"] img').count(), 0);
     assert.equal(await page.locator('[data-package-group="ragcan"]').count(), 0);
     assert.doesNotMatch(await page.locator('#search-assist-content').textContent(), /登録されていません/);
     await page.screenshot({ path: resolve(screenshotDir, 'costume-memberships.png'), fullPage: true });
+    await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/480879/'));
+    await page.waitForSelector('.assist-point-exchanges');
+    assert.match(await page.locator('.assist-point-exchanges').textContent(), /80ポイント/);
+    assert.match(await page.locator('.assist-point-exchanges').textContent(), /2026年10月27日/);
+    assert.doesNotMatch(await page.locator('#search-assist-content').textContent(), /登録されていません/);
+    await page.screenshot({ path: resolve(screenshotDir, 'costama-points.png'), fullPage: true });
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/4879/0/'));
     await page.waitForSelector('.assist-targets');
     assert.equal(await page.locator('.assist-targets li').count(), 1);

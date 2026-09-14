@@ -25,6 +25,24 @@ function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCan
     const title = node('h3', '', 'assist-item-name');
     title.append(itemLink(item.name, item.id));
     container.append(title);
+    if (item.pointExchanges.length) {
+        const section = node('section', '', 'assist-point-exchanges');
+        section.append(node('h4', '復刻コスたま ポイント交換', 'assist-item-name'));
+        const list = node('ul', '', 'assist-revival-list');
+        for (const exchange of item.pointExchanges) {
+            const row = node('li', '', 'library-card assist-membership-card');
+            const title = node(exchange.url ? 'a' : 'span', `${exchange.label} ／ ${exchange.points}ポイント`);
+            if (title instanceof HTMLAnchorElement) {
+                title.href = exchange.url;
+                title.target = '_blank';
+                title.rel = 'noopener noreferrer';
+            }
+            row.append(title, node('p', exchange.period, 'assist-condition'));
+            list.append(row);
+        }
+        section.append(list);
+        container.append(section);
+    }
     for (const group of ['costama', 'ragcan'] as const) {
         const packages = memberships.filter((entry) => entry.group === group);
         if (!packages.length) continue;
@@ -33,7 +51,7 @@ function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCan
         section.append(node('h4', `${group === 'costama' ? '衣装の収録情報（コスたま）' : 'ラグ缶の収録情報'}（${packages.length}件）`, 'assist-item-name'));
         const list = node('ul', '', 'library-list');
         for (const pkg of packages) {
-            const row = node('li', '', 'library-card');
+            const row = node('li', '', 'library-card assist-membership-card');
             const label = node('span', pkg.label);
             if (pkg.url) {
                 const link = node('a', pkg.label);
@@ -43,6 +61,24 @@ function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCan
                 link.title = '公式の収録ページを開く';
                 row.append(link);
             } else row.append(label);
+            if (pkg.revivals.length) {
+                const details = node('details', '', 'assist-revivals');
+                details.append(node('summary', `復刻・再販履歴（${pkg.revivals.length}件）`));
+                const periods = node('ul', '', 'assist-revival-list');
+                for (const revival of pkg.revivals) {
+                    const entry = node('li', '', 'assist-revival-entry');
+                    const title = node(revival.url ? 'a' : 'span', revival.label);
+                    if (title instanceof HTMLAnchorElement) {
+                        title.href = revival.url;
+                        title.target = '_blank';
+                        title.rel = 'noopener noreferrer';
+                    }
+                    entry.append(title, node('span', revival.period));
+                    periods.append(entry);
+                }
+                details.append(periods);
+                row.append(details);
+            }
             list.append(row);
         }
         section.append(list);
@@ -60,7 +96,7 @@ function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCan
         section.append(list);
         container.append(section);
     }
-    if (!item.sets.length && !targets.length && !memberships.length) {
+    if (!item.sets.length && !targets.length && !memberships.length && !item.pointExchanges.length) {
         container.append(node('p', 'このアイテムのエンチャント・収録情報はJRO Searchに登録されていません。'));
     }
     for (const set of item.sets) {

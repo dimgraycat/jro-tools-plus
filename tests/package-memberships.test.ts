@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { buildMembershipIndex, createMembershipLoader } from '../tools/lib/package-memberships.js';
 
 const fixture = { groups: [
-    { key: 'costama', packages: [{ key: 'costama', label: '2026GourmetII', url: 'https://ragnarokonline.gungho.jp/cms/news/costama-gourmet2', item_ids: ['501', '501', 'invalid'] }] },
+    { key: 'costama', packages: [{ key: 'costama', label: '2026GourmetII', url: 'https://ragnarokonline.gungho.jp/cms/news/costama-gourmet2', item_ids: ['501', '501', 'invalid'], revivals: [{ label: '復刻コスたま2026 Season3', period: '2026年8月25日～2026年9月22日', url: 'javascript:alert(1)' }] }] },
     { key: 'ragcan', packages: [
         { key: 'september', label: '2026Sep', url: 'javascript:alert(1)', item_ids: ['501'] },
         { key: 'august', label: '2026Aug', url: 'https://ragnarokonline.gungho.jp.evil.example/', item_ids: ['501'] },
@@ -19,6 +19,8 @@ test('maps all costume and ragcan appearances by ID in published order, deduplic
         ['costama', '2026 GourmetII'], ['ragcan', '2026年09月'], ['ragcan', '2026年08月'],
     ]);
     assert.equal(entries[0].url, 'https://ragnarokonline.gungho.jp/cms/news/costama-gourmet2');
+    assert.deepEqual(entries[0].revivals, [{ label: '復刻コスたま2026 Season3', period: '2026年8月25日～2026年9月22日', url: '' }]);
+    assert.deepEqual(entries[1].revivals, []);
     assert.equal(entries[1].url, '');
     assert.equal(entries[2].url, '');
     assert.equal(index.get('502'), undefined);

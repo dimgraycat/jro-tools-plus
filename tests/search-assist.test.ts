@@ -53,3 +53,12 @@ test('loads without credentials and propagates HTTP, JSON and cancellation failu
     // Failed calls are not cached: the next attempt can succeed.
     assert.ok(await loadAssistItem('15424', controller.signal, fetcher));
 });
+
+test('parses point-only acquisition separately from enchantments and rejects unsafe links', () => {
+    const item = parseAssistItem({ items: [{ item_id: '480879', name: '[衣装] 翼', costama_point_exchanges: [
+        { label: '復刻コスたま2026 Season3', period: '2026年7月28日～2026年10月27日', points: '80', url: 'javascript:alert(1)' },
+        { label: 'invalid tier', period: 'period', points: '-1' },
+    ] }] }, '480879')!;
+    assert.deepEqual(item.sets, []);
+    assert.deepEqual(item.pointExchanges, [{ label: '復刻コスたま2026 Season3', period: '2026年7月28日～2026年10月27日', points: '80', url: '' }]);
+});

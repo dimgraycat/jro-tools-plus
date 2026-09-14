@@ -69,3 +69,11 @@ html { scrollbar-gutter: stable; }
 .version-history-changes { display: grid; gap: 4px; margin: 0; padding-left: 18px; color: var(--history-muted); font-size: 12px; line-height: 1.6; list-style: disc; }
 
 .assist-memberships { margin-bottom: 16px; }
+
+.assist-membership-card { display: block; }
+.assist-revivals { margin-top: 8px; font-size: 12px; }
+.assist-revivals summary { cursor: pointer; color: #64748b; }
+.assist-revival-list { display: grid; gap: 10px; margin: 8px 0 0; padding: 0; list-style: none; }
+.assist-revival-entry { display: grid; gap: 3px; color: #475569; overflow-wrap: anywhere; }
+
+.assist-point-exchanges { margin-bottom: 16px; }
