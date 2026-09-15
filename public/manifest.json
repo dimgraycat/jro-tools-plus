@@ -1,7 +1,7 @@
 {
     "name": "JRO Tools Plus",
     "description": "JROの公式ページを便利にツール",
-    "version": "2026.9.2",
+    "version": "2026.9.3",
     "manifest_version": 3,
     "minimum_chrome_version": "116",
     "icons": {

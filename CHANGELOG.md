@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 2026.9.3 (2026-09-15)
+
+* 検索補助の装備・エンチャント名を公式リンクに変更し、JRO Searchで開くアイコンを追加
+
 ## 2026.9.2 (2026-09-14)
 
 * 検索補助に衣装・ラグ缶の収録情報を追加
