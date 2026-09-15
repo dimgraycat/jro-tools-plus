@@ -17,7 +17,7 @@ html { scrollbar-gutter: stable; }
 #search-assist-content { font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
 .assist-item-name { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
 #search-assist-content a { color: #1d4ed8; }
-#search-assist-content a:hover { text-decoration: underline; }
+#search-assist-content a:hover { text-decoration: none; }
 .assist-set { border: 1px solid #d9e1ea; border-radius: 8px; background: white; margin-bottom: 10px; }
 .assist-set summary { cursor: pointer; padding: 10px; font-weight: 600; }
 .assist-set-content { padding: 0 10px 10px; }
