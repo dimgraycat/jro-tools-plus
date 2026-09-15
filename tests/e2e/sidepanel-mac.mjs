@@ -291,6 +291,22 @@ try {
         'legacy release history must not appear in the Side Panel');
     await page.screenshot({ path: resolve(screenshotDir, 'updates.png'), fullPage: true });
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/'));
+    async function assertAssistLinks(selector, id) {
+        for (const [className, url] of [
+            ['assist-official-link', `https://rotool.gungho.jp/item/${id}/`],
+            ['assist-search-link', `https://asgrcat.github.io/jro-search/items/?id=${id}`],
+        ]) {
+            const link = page.locator(`${selector} .${className}`).first();
+            assert.equal(await link.getAttribute('href'), url);
+            const popupPromise = page.waitForEvent('popup');
+            await link.click();
+            const popup = await popupPromise;
+            await popup.waitForLoadState();
+            assert.equal(popup.url(), url);
+            await popup.close();
+        }
+        assert.equal(await page.locator(`${selector} .assist-search-link`).first().getAttribute('data-tooltip'), 'JRO Searchで開く');
+    }
     await tab('search-assist');
     await page.waitForSelector('.assist-set');
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/15424/0/'));
@@ -298,7 +314,7 @@ try {
     await page.locator('.assist-set summary').click();
     assert.match(await page.locator('#search-assist-content').textContent(), /迷宮調査貢献の証 10個/);
     assert.match(await page.locator('#search-assist-content').textContent(), /精錬値8以上/);
-    assert.equal(await page.locator('.assist-candidates a').getAttribute('href'), 'https://asgrcat.github.io/jro-search/items/?id=4879');
+    await assertAssistLinks('.assist-candidates', '4879');
     assert.equal(await page.locator('.assist-candidates img').count(), 0, 'candidate names must be text, not HTML');
     assert.match(await page.locator('[data-package-group="ragcan"]').textContent(), /2026年09月/);
     assert.equal(await page.locator('[data-package-group="ragcan"] a').getAttribute('href'), 'https://ragnarokonline.gungho.jp/cms/news/ragcan2026september');
@@ -323,8 +339,8 @@ try {
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/4879/0/'));
     await page.waitForSelector('.assist-targets');
     assert.equal(await page.locator('.assist-targets li').count(), 1);
-    assert.equal(await page.locator('.assist-targets a').textContent(), '天蝎宮のメイル[1]');
-    assert.equal(await page.locator('.assist-targets a').getAttribute('href'), 'https://asgrcat.github.io/jro-search/items/?id=15424');
+    assert.equal(await page.locator('.assist-targets .assist-official-link').textContent(), '天蝎宮のメイル[1]');
+    await assertAssistLinks('.assist-targets', '15424');
     assert.equal(await page.locator('.assist-set').count(), 0);
     await page.screenshot({ path: resolve(screenshotDir, 'enchantment-targets.png'), fullPage: true });
     await page.evaluate(() => window.__setActiveUrl('https://rotool.gungho.jp/item/502/'));

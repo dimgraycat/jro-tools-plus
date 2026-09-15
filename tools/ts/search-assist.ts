@@ -1,5 +1,5 @@
 import { createMembershipLoader, PackageMembership } from '../lib/package-memberships.js';
-import { entryFromUrl } from '../lib/personal-library.js';
+import { entryFromUrl, officialUrl } from '../lib/personal-library.js';
 import { AssistItem, loadAssistItem } from '../lib/search-assist.js';
 import { searchUrl } from '../lib/web-sync.js';
 import { createTargetLoader } from '../lib/enchantment-targets.js';
@@ -12,13 +12,26 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, text = '', classNam
     return element;
 }
 
-function itemLink(name: string, id: string): HTMLAnchorElement {
-    const link = node('a', name);
-    link.href = searchUrl({ type: 'item', id });
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.title = 'JRO Searchで開く';
-    return link;
+function itemLink(name: string, id: string): HTMLSpanElement {
+    const links = node('span', '', 'assist-item-links');
+    const entry = { type: 'item' as const, id };
+    const official = node('a', name, 'assist-official-link');
+    official.href = officialUrl(entry);
+    official.title = 'RO公式で開く';
+    const search = node('a', '', 'library-open assist-search-link');
+    search.href = searchUrl(entry);
+    search.dataset.destination = 'search';
+    search.dataset.tooltip = 'JRO Searchで開く';
+    search.setAttribute('aria-label', `${name}をJRO Searchで開く（新しいタブ）`);
+    const icon = node('i', '', 'fa-solid fa-magnifying-glass');
+    icon.setAttribute('aria-hidden', 'true');
+    search.append(icon);
+    for (const link of [official, search]) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+    }
+    links.append(official, search);
+    return links;
 }
 
 function renderItem(item: AssistItem, container: HTMLElement, targets: AssistCandidate[] = [], memberships: PackageMembership[] = []): void {
