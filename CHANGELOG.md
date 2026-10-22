@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 2026.10.1 (2026-10-23)
+
+* 依存ライブラリの脆弱性に対応
+
 ## 2026.9.3 (2026-09-15)
 
 * 検索補助の装備・エンチャント名を公式リンクに変更し、JRO Searchで開くアイコンを追加
