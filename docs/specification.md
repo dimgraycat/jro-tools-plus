@@ -233,7 +233,7 @@ Zeny 表示形式は Side Panel の radio button で選択します。
 
 ## ビルド
 
-Node.js は repo ローカルで `24.16.0` を使用します。
+Node.js は repo ローカルで `24.22.1` を使用します。
 
 - `.node-version`
 - `mise.toml`
