@@ -240,6 +240,11 @@ Node.js は repo ローカルで `24.22.1` を使用します。
 
 依存関係の再現には `npm ci` を使います。
 
+未使用の `gulp`、`chokidar`、`chokidar-cli` は依存に含めません。
+Tailwind CLI と Sass の `@parcel/watcher` は `overrides` で `^2.6.0` に揃え、
+脆弱性の修正版がない `braces` を依存から除外しています。
+Tailwind CLI が安全な watcher を採用したら、この override の要否を再確認します。
+
 ```sh
 mise exec -- npm ci
 ```
