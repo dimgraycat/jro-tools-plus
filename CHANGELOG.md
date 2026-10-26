@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 2026.10.2 (2026-10-26)
+
+* 依存ライブラリの追加の脆弱性に対応
+
 ## 2026.10.1 (2026-10-23)
 
 * 依存ライブラリの脆弱性に対応
